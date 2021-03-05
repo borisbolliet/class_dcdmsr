@@ -1,0 +1,153 @@
+likelihood:
+  planck_2018_lowl.TT:
+  planck_2018_lowl.EE:
+  planck_2018_highl_plik.TTTEEE:
+modules: /mnt/home/chill/cobaya_analyses/modules
+params:
+  logA:
+    prior:
+      min: 1.61
+      max: 3.91
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.001
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  A_s:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.004
+    proposal: 0.002
+    latex: n_\mathrm{s}
+  theta_s_1e2:
+    prior:
+      min: 0.5
+      max: 10
+    ref:
+      dist: norm
+      loc: 1.0416
+      scale: 0.0004
+    proposal: 0.0002
+    latex: 100\theta_\mathrm{s}
+    drop: true
+  100*theta_s:
+    value: 'lambda theta_s_1e2: theta_s_1e2'
+    derived: false
+  H0:
+    latex: H_0
+  omega_b:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.0001
+    proposal: 0.0001
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.001
+    proposal: 0.0005
+    latex: \Omega_\mathrm{c} h^2
+  Omega_m:
+    latex: \Omega_\mathrm{m}
+  omegamh2:
+    derived: 'lambda Omega_m, H0: Omega_m*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  m_ncdm:
+    value: 0.06
+    renames: mnu
+  Omega_Lambda:
+    latex: \Omega_\Lambda
+  YHe:
+    latex: Y_\mathrm{P}
+  tau_reio:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.006
+    proposal: 0.003
+    latex: \tau_\mathrm{reio}
+  z_reio:
+    latex: z_\mathrm{re}
+  sigma8:
+    latex: \sigma_8
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  s8omegamp25:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  A:
+    derived: 'lambda A_s: 1e9*A_s'
+    latex: 10^9 A_\mathrm{s}
+  clamp:
+    derived: 'lambda A_s, tau_reio: 1e9*A_s*np.exp(-2*tau_reio)'
+    latex: 10^9 A_\mathrm{s} e^{-2\tau}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rs_drag:
+    latex: r_\mathrm{drag}
+  chi2__CMB:
+    derived: 'lambda chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE:
+      sum([chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE])'
+    latex: \chi^2_\mathrm{CMB}
+sampler:
+  minimize:
+    # Method: bobyqa|scipy
+    method: bobyqa
+    # Minimizes the full posterior (False) or just the likelihood (True)
+    # Likelihood maximization is subject to prior bounds!
+    # JCH: we want to include the effect of, e.g., the non-uniform priors on the foreground parameters
+    ignore_prior: False
+    # Maximum number of iterations (default: practically infinite)
+    #max_evals: 1e6d
+    max_evals: 1e4d
+    # Treatment of unbounded parameters: confidence level to use
+    # (Use with care if there are likelihood modes close to the edge of the prior)
+    confidence_for_unbounded: 0.9999995  # 5 sigmas of the prior
+    # Override keyword arguments for `scipy.optimize.minimize()` or `pybobyqa.solve()`
+    # scipy:
+    #  - https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    #  - options for individual methods
+    override_scipy:
+      # option: value
+    # bobyqa:
+    #  - https://numericalalgorithmsgroup.github.io/pybobyqa/build/html/userguide.html
+    #  - https://numericalalgorithmsgroup.github.io/pybobyqa/build/html/advanced.html
+    override_bobyqa:
+      # option: value
+      # Relaxed convergence criterion for numerically-noisiy likelihoods
+      #rhoend: 0.05
+      rhoend: 0.01 #better
+theory:
+  classy:
+    extra_args:
+      non linear: halofit
+      N_ncdm: 1
+      N_ur: 2.0328
+      P_k_max_h/Mpc: 20.
+      z_max_pk: 1.
+
+output: chains/CLASS2p8_planck2018_baseLCDM_lowTT_lowEE_plikHM_TTTEEE
