@@ -14,3 +14,7 @@ RealSpaceInterface/cache/
 .DS_Store
 doc/manual/html
 doc/manual/latex
+.ftpconfig
+class_sz
+notebooks/*pdf
+notebooks/*checkpoints

@@ -787,9 +787,7 @@ int perturb_init(
 
           tspent += tstop-tstart;
 #endif
-
 #pragma omp flush(abort)
-
         } /* end of loop over wavenumbers */
 
 #ifdef _OPENMP
@@ -2950,7 +2948,6 @@ int perturb_solve(
 
   /** - fill the structure containing all fixed parameters, indices
       and workspaces needed by perturb_derivs */
-
   ppaw.ppr = ppr;
   ppaw.pba = pba;
   ppaw.pth = pth;
@@ -3003,7 +3000,6 @@ int perturb_solve(
         mode. If it starts from an approximation switching point,
         redistribute correctly the perturbations from the previous to
         the new vector of perturbations. */
-
     class_call(perturb_vector_init(ppr,
                                    pba,
                                    pth,
@@ -3046,7 +3042,6 @@ int perturb_solve(
                ppt->error_message);
 
   }
-
   /** - if perturbations were printed in a file, close the file */
 
   //if (perhaps_print_variables != NULL)
@@ -3555,7 +3550,9 @@ int perturb_find_approximation_switches(
       }
     }
 
+
     free(unsorted_tau_switch);
+
 
     class_call(perturb_approximations(ppr,
                                       pba,

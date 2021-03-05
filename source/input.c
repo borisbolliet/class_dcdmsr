@@ -626,6 +626,7 @@ int input_read_parameters(
 
   /** Summary: */
 
+
   /** - define local variables */
 
   int flag1,flag2,flag3;
@@ -681,6 +682,23 @@ int input_read_parameters(
                                   pop),
              errmsg,
              errmsg);
+
+
+   /* class_T0 modification */
+   class_read_double("T0_star",pba->T0_star);
+   class_read_double("z_h",pba->z_h);
+   class_read_double("delta_z_h",pba->delta_z_h);
+   if (pba->z_h < 0.)
+    pba->delta_z_h = 1.e-2*fabs(pba->z_h);
+
+   // class_test((pba->z_h)/pba->delta_z_h <= 0.8,
+   //            errmsg,
+   //            "Your values of z_h and deltaz_h don't reproduce the T_cmb value specified");
+   // class_test(pba->z_h > 1000000.,
+   //            errmsg,
+   //            "Your values of z_h is too close to z_bbn");
+   /* end class_T0 modification */
+
 
   /** - if entries passed in file_content structure, carefully read
       and interpret each of them, and tune the relevant input
@@ -745,30 +763,37 @@ int input_read_parameters(
   class_test(class_at_least_two_of_three(flag1,flag2,flag3),
              errmsg,
              "In input file, you can only enter one of T_cmb, Omega_g or omega_g, choose one");
+  //class_T0 modif
+  if (pba->z_h<0.)
+    pba->T_cmb = pba->T0_star;
 
-  if (class_none_of_three(flag1,flag2,flag3)) {
+
+  ///if (class_none_of_three(flag1,flag2,flag3)) {
     pba->Omega0_g = (4.*sigma_B/_c_*pow(pba->T_cmb,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
-  }
-  else {
-
-    if (flag1 == _TRUE_) {
-      /** - Omega0_g = rho_g / rho_c0, each of them expressed in \f$ Kg/m/s^2 \f$*/
-      /** - rho_g = (4 sigma_B / c) \f$ T^4 \f$*/
-      /** - rho_c0 \f$ = 3 c^2 H_0^2 / (8 \pi G) \f$*/
-      pba->Omega0_g = (4.*sigma_B/_c_*pow(param1,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
-      pba->T_cmb=param1;
-    }
-
-    if (flag2 == _TRUE_) {
-      pba->Omega0_g = param2;
-      pba->T_cmb=pow(pba->Omega0_g * (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_) / (4.*sigma_B/_c_),0.25);
-    }
-
-    if (flag3 == _TRUE_) {
-      pba->Omega0_g = param3/pba->h/pba->h;
-      pba->T_cmb = pow(pba->Omega0_g * (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_) / (4.*sigma_B/_c_),0.25);
-    }
-  }
+  //}
+  // else {
+  //
+  //   if (flag1 == _TRUE_) {
+  //     /** - Omega0_g = rho_g / rho_c0, each of them expressed in \f$ Kg/m/s^2 \f$*/
+  //     /** - rho_g = (4 sigma_B / c) \f$ T^4 \f$*/
+  //     /** - rho_c0 \f$ = 3 c^2 H_0^2 / (8 \pi G) \f$*/
+  //     pba->Omega0_g = (4.*sigma_B/_c_*pow(param1,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+  //     pba->T_cmb=param1;
+  //   }
+  //
+  //   if (flag2 == _TRUE_) {
+  //     pba->Omega0_g = param2;
+  //     pba->T_cmb=pow(pba->Omega0_g * (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_) / (4.*sigma_B/_c_),0.25);
+  //   }
+  //
+  //   if (flag3 == _TRUE_) {
+  //     pba->Omega0_g = param3/pba->h/pba->h;
+  //     pba->T_cmb = pow(pba->Omega0_g * (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_) / (4.*sigma_B/_c_),0.25);
+  //   }
+  // }
+  //
+  // if (pba->z_h < 0.)
+  //   pba->Omega0_g *= pow(pba->T0_star/pba->T_cmb,4.);
 
   Omega_tot = pba->Omega0_g;
 

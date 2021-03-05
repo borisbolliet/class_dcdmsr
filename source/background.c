@@ -301,6 +301,14 @@ int background_functions(
 
   /* photons */
   pvecback[pba->index_bg_rho_g] = pba->Omega0_g * pow(pba->H0,2) / pow(a_rel,4);
+
+  /* class_T0 modifications */
+  double z = 1./a_rel -1.;
+  pvecback[pba->index_bg_modified_tcmb] = modified_T_cmb(pba,z);//(pba->T0_star+(pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z);
+  pvecback[pba->index_bg_rho_g] *= 1./(pow(pba->T_cmb,4)*pow(a_rel,-4))*pow(pvecback[pba->index_bg_modified_tcmb],4);
+
+  /* end class_T0 modifications */
+
   rho_tot += pvecback[pba->index_bg_rho_g];
   p_tot += (1./3.) * pvecback[pba->index_bg_rho_g];
   dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_g];
@@ -401,10 +409,28 @@ int background_functions(
 
   /* Lambda */
   if (pba->has_lambda == _TRUE_) {
-    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+    // pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+    /* class_T0 modifs */
+    double sigma_B; /* Stefan-Boltzmann constant in \f$ W/m^2/K^4 = Kg/K^4/s^3 \f$*/
+
+    sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
+    double Omega_lambda_star = pba->Omega0_lambda
+                             + pba->Omega0_g
+                             + pba->Omega0_ur
+                             - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*pow(pba->T0_star,4.))
+                             / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+    double rho_lambda_ini = Omega_lambda_star*pow(pba->H0,2);
+
+    pvecback[pba->index_bg_rho_lambda] = rho_lambda_ini
+                                        - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*(pow(pvecback[pba->index_bg_modified_tcmb],4.)-pow(pba->T0_star*(1.+z),4.)))
+                                        / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_)*pow(pba->H0,2);
+
+    /* class_T0_modifs */
     rho_tot += pvecback[pba->index_bg_rho_lambda];
     p_tot -= pvecback[pba->index_bg_rho_lambda];
   }
+
+
 
   /* fluid with w(a) and constant cs2 */
   if (pba->has_fld == _TRUE_) {
@@ -923,6 +949,10 @@ int background_indices(
   /** - initialize all indices */
 
   index_bg=0;
+
+  /* class_T0 modif */
+  class_define_index(pba->index_bg_modified_tcmb,_TRUE_,index_bg,1);
+  /* class_T0 modif */
 
   /* index for scale factor */
   class_define_index(pba->index_bg_a,_TRUE_,index_bg,1);
@@ -2686,3 +2716,11 @@ int background_output_budget(
 
   return _SUCCESS_;
 }
+
+
+double modified_T_cmb(struct background *pba,
+                      double z){
+
+return (pba->T0_star+(pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z);
+
+                      }

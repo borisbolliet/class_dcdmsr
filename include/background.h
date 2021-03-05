@@ -47,6 +47,13 @@ struct background
 
   //@{
 
+  /* class_T0 modification */
+  double T0_star;
+  double z_h;
+  double delta_z_h;
+  int index_bg_modified_tcmb;
+  /* end class_T0 modification */
+
   double H0; /**< \f$ H_0 \f$: Hubble parameter (in fact, [\f$H_0/c\f$]) in \f$ Mpc^{-1} \f$ */
 
   double Omega0_g; /**< \f$ \Omega_{0 \gamma} \f$: photons */
@@ -553,6 +560,10 @@ extern "C" {
   int background_output_budget(
                struct background* pba
                );
+
+
+  double modified_T_cmb(struct background *pba,
+                        double z);
 
 #ifdef __cplusplus
 }

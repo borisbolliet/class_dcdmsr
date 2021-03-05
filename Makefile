@@ -3,10 +3,13 @@
 
 MDIR := $(shell pwd)
 WRKDIR = $(MDIR)/build
+OUTDIR = $(MDIR)/output_2
 
 .base:
 	if ! [ -e $(WRKDIR) ]; then mkdir $(WRKDIR) ; mkdir $(WRKDIR)/lib; fi;
 	touch build/.base
+	if ! [ -e $(OUTDIR) ]; then mkdir $(OUTDIR) ; fi;
+
 
 vpath %.c source:tools:main:test
 vpath %.o build
@@ -17,7 +20,7 @@ vpath .base build
 ########################################################
 
 # your C compiler:
-CC       = gcc
+CC       = gcc-10
 #CC       = icc
 #CC       = pgcc
 
