@@ -2103,11 +2103,11 @@ int input_read_parameters(
 
 
         /* class_T0 modification */
-      class_call(parser_read_double(pfc,"bar_ln10^{10}A_s",&param3,&flag3,errmsg),
+      class_call(parser_read_double(pfc,"bar_ln10_10_A_s",&param3,&flag3,errmsg),
                  errmsg,
                  errmsg);
       if (flag3 == _TRUE_)
-        ppm->A_s = exp(param2)*1.e-10*pow(T0_star_over_T_firas,1.-ppm->n_s);
+        ppm->A_s = exp(param3)*1.e-10*pow(T0_star_over_T_firas,1.-ppm->n_s);
 
 
       if (ppt->has_bi == _TRUE_) {

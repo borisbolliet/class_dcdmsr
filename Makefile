@@ -3,7 +3,7 @@
 
 MDIR := $(shell pwd)
 WRKDIR = $(MDIR)/build
-OUTDIR = $(MDIR)/output_2
+OUTDIR = $(MDIR)/output
 
 .base:
 	if ! [ -e $(WRKDIR) ]; then mkdir $(WRKDIR) ; mkdir $(WRKDIR)/lib; fi;
