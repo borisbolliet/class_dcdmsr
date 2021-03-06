@@ -691,6 +691,8 @@ int input_read_parameters(
    if (pba->z_h < 0.)
     pba->delta_z_h = 1.e-2*fabs(pba->z_h);
 
+   double T0_star_over_T_firas = pba->T0_star/2.7255;
+
    // class_test((pba->z_h)/pba->delta_z_h <= 0.8,
    //            errmsg,
    //            "Your values of z_h and deltaz_h don't reproduce the T_cmb value specified");
@@ -814,6 +816,16 @@ int input_read_parameters(
 
   Omega_tot += pba->Omega0_b;
 
+
+  /* class_T0 modification */
+  class_call(parser_read_double(pfc,"bar_omega_b",&param3,&flag3,errmsg),
+             errmsg,
+             errmsg);
+  if (flag3 == _TRUE_)
+    pba->Omega0_b = param3/pba->h/pba->h*pow(T0_star_over_T_firas,3.);
+
+  Omega_tot += pba->Omega0_b;
+
   /** - Omega_0_ur (ultra-relativistic species / massless neutrino) */
 
   /* (a) try to read N_ur */
@@ -932,6 +944,15 @@ int input_read_parameters(
     pba->Omega0_cdm = param2/pba->h/pba->h;
 
   if ((ppt->gauge == synchronous) && (pba->Omega0_cdm==0)) pba->Omega0_cdm = ppr->Omega0_cdm_min_synchronous;
+
+  /* class_T0 modification */
+  class_call(parser_read_double(pfc,"bar_omega_cdm",&param3,&flag3,errmsg),
+             errmsg,
+             errmsg);
+  if (flag3 == _TRUE_)
+    pba->Omega0_cdm = param3/pba->h/pba->h*pow(T0_star_over_T_firas,3.);
+
+
 
   Omega_tot += pba->Omega0_cdm;
 
@@ -2079,6 +2100,15 @@ int input_read_parameters(
         class_read_double("alpha_s",ppm->alpha_s);
 
       }
+
+
+        /* class_T0 modification */
+      class_call(parser_read_double(pfc,"bar_ln10^{10}A_s",&param3,&flag3,errmsg),
+                 errmsg,
+                 errmsg);
+      if (flag3 == _TRUE_)
+        ppm->A_s = exp(param2)*1.e-10*pow(T0_star_over_T_firas,1.-ppm->n_s);
+
 
       if (ppt->has_bi == _TRUE_) {
 
