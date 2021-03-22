@@ -9,6 +9,7 @@
 #include "arrays.h"
 #include "dei_rkck.h"
 #include "parser.h"
+#include "Patterson.h"
 
 //The name for this macro can be at most 30 characters total
 #define _class_print_species_(name,type) \
@@ -49,9 +50,18 @@ struct background
 
   /* class_T0 modification */
   double T0_star;
+  double rho_dl_ini;
+  double delta_T_cmb;
   double z_h;
   double delta_z_h;
   int index_bg_modified_tcmb;
+  int index_bg_rho_g_star;
+  int index_bg_modified_rho_lambda;
+  int index_bg_modified_rho_g;
+  int index_bg_delta_rho_g;
+  double Omega0_lambda_star;
+  double Omega0_g_star;
+  int flag_solve_full_dynamic_dl;
   /* end class_T0 modification */
 
   double H0; /**< \f$ H_0 \f$: Hubble parameter (in fact, [\f$H_0/c\f$]) in \f$ Mpc^{-1} \f$ */
@@ -274,6 +284,7 @@ struct background
   //@{
 
   int index_bi_a;       /**< {B} scale factor */
+  int index_bi_rho_dl;/**< {B} decaying cosmological constant */
   int index_bi_rho_dcdm;/**< {B} dcdm density */
   int index_bi_rho_dr;  /**< {B} dr density */
   int index_bi_rho_fld; /**< {B} fluid density */
@@ -564,6 +575,14 @@ extern "C" {
 
   double modified_T_cmb(struct background *pba,
                         double z);
+
+double modified_T_cmb_f(double z,
+                        struct background *pba
+                      );
+double modified_T_cmb_df_dz(double z,
+                            struct background *pba
+                          );
+double integrand_modified_T_cmb_S_x(double x,void * params);
 
 #ifdef __cplusplus
 }

@@ -301,19 +301,34 @@ int background_functions(
 
   /* photons */
   pvecback[pba->index_bg_rho_g] = pba->Omega0_g * pow(pba->H0,2) / pow(a_rel,4);
+  pvecback[pba->index_bg_rho_g_star] = pba->Omega0_g_star * pow(pba->H0,2) / pow(a_rel,4);
 
   /* class_T0 modifications */
   double z = 1./a_rel -1.;
-  pvecback[pba->index_bg_modified_tcmb] = modified_T_cmb(pba,z);//(pba->T0_star+(pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z);
-  pvecback[pba->index_bg_rho_g] *= 1./(pow(pba->T_cmb,4)*pow(a_rel,-4))*pow(pvecback[pba->index_bg_modified_tcmb],4);
+  pvecback[pba->index_bg_modified_tcmb] = modified_T_cmb(pba,z)*(1.+z);//(pba->T0_star+(pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z);
+  // pvecback[pba->index_bg_modified_rho_g] = pvecback[pba->index_bg_rho_g_star]*pow(a_rel,4)/pow(pba->T0_star,4)*pow(pvecback[pba->index_bg_modified_tcmb],4);
+  pvecback[pba->index_bg_modified_rho_g] = pvecback[pba->index_bg_rho_g]*pow(modified_T_cmb_f(z,pba),4);//*pow(a_rel,4)/pow(pba->T_cmb,4)*pow(pvecback[pba->index_bg_modified_tcmb],4);
+  pvecback[pba->index_bg_delta_rho_g] = pvecback[pba->index_bg_rho_g]*(pow(modified_T_cmb_f(z,pba),4)-pow(modified_T_cmb_f(1e14,pba),4));//(4.*sigma_B/_c_)*((pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z),4)*pow(pba->H0,2)/ (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);;
+
+  // pba->Omega0_g * pow(pba->H0,2) / pow(a_rel,4)
 
   /* end class_T0 modifications */
+  //
 
+if (pba->flag_solve_full_dynamic_dl == 1 ){
+  //
+  pvecback[pba->index_bg_rho_g] = pvecback[pba->index_bg_modified_rho_g];
+  rho_tot += pvecback[pba->index_bg_modified_rho_g];
+  p_tot += (1./3.) * pvecback[pba->index_bg_modified_rho_g];
+  dp_dloga += -(4./3.) * pvecback[pba->index_bg_modified_rho_g];
+  rho_r += pvecback[pba->index_bg_modified_rho_g];
+}
+else{
   rho_tot += pvecback[pba->index_bg_rho_g];
   p_tot += (1./3.) * pvecback[pba->index_bg_rho_g];
   dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_g];
   rho_r += pvecback[pba->index_bg_rho_g];
-
+}
   /* baryons */
   pvecback[pba->index_bg_rho_b] = pba->Omega0_b * pow(pba->H0,2) / pow(a_rel,3);
   rho_tot += pvecback[pba->index_bg_rho_b];
@@ -404,32 +419,58 @@ int background_functions(
       /* (rho_ncdm1 - 3 p_ncdm1) is the "non-relativistic" contribution
          to rho_ncdm1 */
       rho_m += rho_ncdm - 3.* p_ncdm;
+      printf("done with ncdm\n");
+      exit(0);
     }
   }
 
   /* Lambda */
   if (pba->has_lambda == _TRUE_) {
-    // pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
     /* class_T0 modifs */
-    double sigma_B; /* Stefan-Boltzmann constant in \f$ W/m^2/K^4 = Kg/K^4/s^3 \f$*/
+    // double sigma_B; /* Stefan-Boltzmann constant in \f$ W/m^2/K^4 = Kg/K^4/s^3 \f$*/
+    //
+    // sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
+    // double Omega_lambda_star = pba->Omega0_lambda
+    //                          + pba->Omega0_g
+    //                          // + pba->Omega0_ur
+    //                          // + pba->Omega0_ncdm[0]
+    //                          // - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*pow(pba->T0_star,4.))
+    //                          // / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+    //                          - (4.*sigma_B/_c_*pow(pba->T0_star,4.))
+    //                          / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
 
-    sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
-    double Omega_lambda_star = pba->Omega0_lambda
-                             + pba->Omega0_g
-                             + pba->Omega0_ur
-                             - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*pow(pba->T0_star,4.))
-                             / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
-    double rho_lambda_ini = Omega_lambda_star*pow(pba->H0,2);
+    // double ogstar = (4.*sigma_B/_c_*pow(pba->T0_star,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+    // double rho_lambda_ini = pba->Omega0_lambda_star*pow(pba->H0,2);
+    //
+    // pvecback[pba->index_bg_rho_lambda] = rho_lambda_ini
+    //                                     - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*(pow(pvecback[pba->index_bg_modified_tcmb],4.)-pow(pba->T0_star*(1.+z),4.)))
+    //                                     / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_)*pow(pba->H0,2);
 
-    pvecback[pba->index_bg_rho_lambda] = rho_lambda_ini
-                                        - (1.+3.046*7./8.*pow(4./11.,4./3.))*(4.*sigma_B/_c_*(pow(pvecback[pba->index_bg_modified_tcmb],4.)-pow(pba->T0_star*(1.+z),4.)))
-                                        / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_)*pow(pba->H0,2);
+    // pvecback[pba->index_bg_delta_rho_g] = pvecback[pba->index_bg_modified_rho_g]  - pvecback[pba->index_bg_rho_g_star] ;
+    pvecback[pba->index_bg_modified_rho_lambda] = pvecback_B[pba->index_bi_rho_dl];//rho_lambda_ini - pvecback[pba->index_bg_delta_rho_g];
+                                        // - (4.*sigma_B/_c_*(pow(pvecback[pba->index_bg_modified_tcmb],4.)-pow(pba->T0_star*(1.+z),4.)))
+                                        // / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_)*pow(pba->H0,2);
 
     /* class_T0_modifs */
+    if (pba->flag_solve_full_dynamic_dl == 1 ){
+      pvecback[pba->index_bg_rho_lambda] = pvecback[pba->index_bg_modified_rho_lambda];
+    rho_tot += pvecback[pba->index_bg_modified_rho_lambda];
+    p_tot -= pvecback[pba->index_bg_modified_rho_lambda];
+  }
+    else{
     rho_tot += pvecback[pba->index_bg_rho_lambda];
     p_tot -= pvecback[pba->index_bg_rho_lambda];
   }
-
+//       if (z<2e3 && z>50.){
+//         printf("z = %.3e rho_lambda = %.5e mod_rho_lambda = %.5e delta_rho_g = %.3e\n",
+//                 z,
+//                 pvecback[pba->index_bg_rho_lambda],
+//                 pvecback[pba->index_bg_modified_rho_lambda],
+//                 pvecback[pba->index_bg_delta_rho_g]);
+//         // printf("z = %.3e T_cmb = %.5e mod_T_cmb = %.5e diff = %.5e \n", z, pba->T_cmb*(1.+z), pvecback[pba->index_bg_modified_tcmb], pba->T_cmb*(1.+z)- pvecback[pba->index_bg_modified_tcmb]);
+// }
+  }
 
 
   /* fluid with w(a) and constant cs2 */
@@ -453,7 +494,8 @@ int background_functions(
 
   /* relativistic neutrinos (and all relativistic relics) */
   if (pba->has_ur == _TRUE_) {
-    pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4);
+    double z = 1./a_rel - 1.;
+    pvecback[pba->index_bg_rho_ur] = pba->Omega0_ur * pow(pba->H0,2) / pow(a_rel,4)*pow(modified_T_cmb_f(z,pba),4);
     rho_tot += pvecback[pba->index_bg_rho_ur];
     p_tot += (1./3.) * pvecback[pba->index_bg_rho_ur];
     dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_ur];
@@ -638,6 +680,17 @@ int background_w_fld(
  * @param pba Input/Output: pointer to initialized background structure
  * @return the error status
  */
+struct Parameters_for_integrand_patterson_modified_T_cmb_S_x{
+  struct background * pba;
+};
+
+double integrand_modified_T_cmb_S_x(double x,void * params){
+ // x = ln(1+z)
+ struct Parameters_for_integrand_patterson_modified_T_cmb_S_x *V = ((struct Parameters_for_integrand_patterson_modified_T_cmb_S_x *) params);
+ double z = exp(x)-1.;
+ return pow(1.+z,5.)*pow(modified_T_cmb_f(z,V->pba),3)*modified_T_cmb_df_dz(z,V->pba);
+
+}
 
 int background_init(
                     struct precision * ppr,
@@ -695,8 +748,13 @@ int background_init(
              density of one neutrino in the instantaneous decoupling
              limit, i.e. assuming T_nu=(4/11)^1/3 T_gamma (this comes
              from the definition of N_eff) */
+
+          // <!> BB: Do we need to change something here? <!>
+          // rho_nu_rel = 56.0/45.0*pow(_PI_,6)*pow(4.0/11.0,4.0/3.0)*_G_/pow(_h_P_,3)/pow(_c_,7)*
+          //   pow(_Mpc_over_m_,2)*pow(pba->T_cmb*_k_B_,4);
+
           rho_nu_rel = 56.0/45.0*pow(_PI_,6)*pow(4.0/11.0,4.0/3.0)*_G_/pow(_h_P_,3)/pow(_c_,7)*
-            pow(_Mpc_over_m_,2)*pow(pba->T_cmb*_k_B_,4);
+            pow(_Mpc_over_m_,2)*pow(pba->T0_star*_k_B_,4);
 
           printf(" -> ncdm species i=%d sampled with %d (resp. %d) points for purpose of background (resp. perturbation) integration. In the relativistic limit it gives Delta N_eff = %g\n",
                  n_ncdm+1,
@@ -766,9 +824,49 @@ int background_init(
 
   /** - this function integrates the background over time, allocates
       and fills the background table */
+
+
+  double z_min = 0.;
+  double z_max = pba->z_h + 10.*pba->delta_z_h;
+  double epsrel = 1e-4;
+  double epsabs = 1e-20;
+  int show_neval = 0;
+  struct Parameters_for_integrand_patterson_modified_T_cmb_S_x V;
+  V.pba = pba;
+  void * params = &V;
+  double r_patterson=Integrate_using_Patterson_adaptive(log(1. + z_min), log(1. + z_max),
+                                               epsrel, epsabs,
+                                               integrand_modified_T_cmb_S_x,
+                                               params,
+                                               show_neval);
+
+  printf("computing initial DE: r = %.5e\n",r_patterson);
+  r_patterson *= 4.* pba->Omega0_g * pow(pba->H0,2);
+
+  pba->rho_dl_ini = 0.;
+  pba->flag_solve_full_dynamic_dl = 0;
+
+
+  // exit(0);
+  printf("solving background first time\n");
   class_call(background_solve(ppr,pba),
              pba->error_message,
              pba->error_message);
+
+  printf("success\n");
+  double r = -(pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_modified_rho_lambda]+pba->Omega0_lambda * pow(pba->H0,2));
+  pba->rho_dl_ini = -(pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_modified_rho_lambda]-pba->Omega0_lambda * pow(pba->H0,2))/ (4.* pba->Omega0_g * pow(pba->H0,2));
+  double z = 1./pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_a] - 1.;
+
+  printf("computing initial DE: r_patterson = %.10e r = %.10e at z = %.3e\n",r_patterson,r,z);
+  printf("solving background second time with correct dl IC\n");
+  pba->flag_solve_full_dynamic_dl = 1;
+  class_call(background_solve(ppr,pba),
+             pba->error_message,
+             pba->error_message);
+  r = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_modified_rho_lambda]-pba->Omega0_lambda * pow(pba->H0,2);
+  printf("check initial DE: r = %.10e at z = %.3e\n",r,z);
+  // exit(0);
 
   /** - this function finds and stores a few derived parameters at radiation-matter equality */
   class_call(background_find_equality(ppr,pba),
@@ -952,6 +1050,10 @@ int background_indices(
 
   /* class_T0 modif */
   class_define_index(pba->index_bg_modified_tcmb,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_rho_g_star,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_modified_rho_g,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_delta_rho_g,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_modified_rho_lambda,_TRUE_,index_bg,1);
   /* class_T0 modif */
 
   /* index for scale factor */
@@ -1081,6 +1183,9 @@ int background_indices(
 
   /* -> energy density in DR */
   class_define_index(pba->index_bi_rho_dr,pba->has_dr,index_bi,1);
+
+  /* -> energy density in Decaying Lambda */
+  class_define_index(pba->index_bi_rho_dl,_TRUE_,index_bi,1);
 
   /* -> energy density in fluid */
   class_define_index(pba->index_bi_rho_fld,pba->has_fld,index_bi,1);
@@ -1920,11 +2025,21 @@ int background_solve(
       instantaneously-decoupled neutrinos accounting for the
       radiation density, beyond photons */
 
+
+
+if (pba->flag_solve_full_dynamic_dl == 1 ){
+  pba->Neff = (pba->background_table[pba->index_bg_Omega_r]
+               *pba->background_table[pba->index_bg_rho_crit]
+               -pba->background_table[pba->index_bg_modified_rho_g])
+    /(7./8.*pow(4./11.,4./3.)*pba->background_table[pba->index_bg_modified_rho_g]);
+}
+else{
   pba->Neff = (pba->background_table[pba->index_bg_Omega_r]
                *pba->background_table[pba->index_bg_rho_crit]
                -pba->background_table[pba->index_bg_rho_g])
     /(7./8.*pow(4./11.,4./3.)*pba->background_table[pba->index_bg_rho_g]);
 
+}
   /** - done */
   if (pba->background_verbose > 0) {
     printf(" -> age = %f Gyr\n",pba->age);
@@ -2047,12 +2162,13 @@ int background_initial_conditions(
   pvecback_integration[pba->index_bi_a] = a;
 
   /* Set initial values of {B} variables: */
-  Omega_rad = pba->Omega0_g;
+  Omega_rad = pba->Omega0_g_star;
   if (pba->has_ur == _TRUE_)
     Omega_rad += pba->Omega0_ur;
   if (pba->has_idr == _TRUE_)
     Omega_rad += pba->Omega0_idr;
   rho_rad = Omega_rad*pow(pba->H0,2)/pow(a/pba->a_today,4);
+  // rho_rad = Omega_rad*pow(pba->H0,2)/pow(a/pba->a_today,4);
   if (pba->has_ncdm == _TRUE_){
     /** - We must add the relativistic contribution from NCDM species */
     rho_rad += rho_ncdm_rel_tot;
@@ -2083,6 +2199,8 @@ int background_initial_conditions(
       pvecback_integration[pba->index_bi_rho_dr] = 0.0;
     }
   }
+  // decaying cosmological constant
+  pvecback_integration[pba->index_bi_rho_dl] = pba->Omega0_lambda * pow(pba->H0,2) + 4.*pba->rho_dl_ini * pba->Omega0_g * pow(pba->H0,2);
 
   if (pba->has_fld == _TRUE_){
 
@@ -2279,6 +2397,14 @@ int background_output_titles(struct background * pba,
   class_store_columntitle(titles,"(.)rho_g",_TRUE_);
   class_store_columntitle(titles,"(.)rho_b",_TRUE_);
   class_store_columntitle(titles,"(.)rho_cdm",pba->has_cdm);
+  class_store_columntitle(titles,"Omega_g",_TRUE_);
+  class_store_columntitle(titles,"Omega_ncdm",_TRUE_);
+  class_store_columntitle(titles,"Omega_cb",_TRUE_);
+  class_store_columntitle(titles,"Omega_l",_TRUE_);
+  class_store_columntitle(titles,"Omega_tot",_TRUE_);
+  class_store_columntitle(titles,"mod_T_cmb",_TRUE_);
+  class_store_columntitle(titles,"mod_rho_lambda",_TRUE_);
+  class_store_columntitle(titles,"delta_rho_g",_TRUE_);
   if (pba->has_ncdm == _TRUE_){
     for (n=0; n<pba->N_ncdm; n++){
       sprintf(tmp,"(.)rho_ncdm[%d]",n);
@@ -2312,6 +2438,10 @@ int background_output_titles(struct background * pba,
 
   class_store_columntitle(titles,"gr.fac. D",_TRUE_);
   class_store_columntitle(titles,"gr.fac. f",_TRUE_);
+  class_store_columntitle(titles,"mod_rho_g",_TRUE_);
+  class_store_columntitle(titles,"mod_t_cmb_f",_TRUE_);
+  class_store_columntitle(titles,"mod_t_cmb_df_dz",_TRUE_);
+  class_store_columntitle(titles,"mod_t_cmb_dy",_TRUE_);
 
   return _SUCCESS_;
 }
@@ -2340,6 +2470,18 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_rho_g],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_b],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_cdm],pba->has_cdm,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_g]/pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_ncdm1]/pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
+    class_store_double(dataptr,(pvecback[pba->index_bg_rho_cdm]+pvecback[pba->index_bg_rho_b])/pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_lambda]/pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
+    class_store_double(dataptr,(pvecback[pba->index_bg_rho_lambda]
+                                +pvecback[pba->index_bg_rho_cdm]+pvecback[pba->index_bg_rho_b]
+                                +pvecback[pba->index_bg_rho_ncdm1]+pvecback[pba->index_bg_rho_g]
+                                +pvecback[pba->index_bg_rho_ur])
+                                /pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_modified_tcmb],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_modified_rho_lambda],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_delta_rho_g],_TRUE_,storeidx);
     if (pba->has_ncdm == _TRUE_){
       for (n=0; n<pba->N_ncdm; n++){
         class_store_double(dataptr,pvecback[pba->index_bg_rho_ncdm1+n],_TRUE_,storeidx);
@@ -2371,6 +2513,16 @@ int background_output_data(
 
     class_store_double(dataptr,pvecback[pba->index_bg_D],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_f],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_modified_rho_g],_TRUE_,storeidx);
+    double z = pba->a_today/pvecback[pba->index_bg_a]-1.;
+    double mod_t_cmb_f = modified_T_cmb_f(z,pba);
+    class_store_double(dataptr,mod_t_cmb_f,_TRUE_,storeidx);
+    double mod_t_cmb_df_dz = modified_T_cmb_df_dz(z,pba);
+    class_store_double(dataptr,mod_t_cmb_df_dz,_TRUE_,storeidx);
+    double a = pvecback[pba->index_bg_a];
+    double H = pvecback[pba->index_bg_H];
+    double dy_dl = (a*H)*pow(1.+z,5.)*pow(modified_T_cmb_f(z,pba),3)*modified_T_cmb_df_dz(z,pba);
+    class_store_double(dataptr,dy_dl,_TRUE_,storeidx);
   }
 
   return _SUCCESS_;
@@ -2444,6 +2596,7 @@ int background_derivs(
 
   /** - calculate \f$ rs' = c_s \f$*/
   dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+  // dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_modified_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
 
   /** - solve second order growth equation  \f$ [D''(\tau)=-aHD'(\tau)+3/2 a^2 \rho_M D(\tau) \f$ */
   rho_M = pvecback[pba->index_bg_rho_b];
@@ -2479,6 +2632,17 @@ int background_derivs(
       (2*pvecback[pba->index_bg_H]*y[pba->index_bi_phi_prime_scf]
        + y[pba->index_bi_a]*dV_scf(pba,y[pba->index_bi_phi_scf])) ;
   }
+
+
+  // decaying cosmological constant:
+  // derivative wrt conformal time
+  double z = 1./a-1.;
+  double dy_t = - 4.*pba->Omega0_g * pow(pba->H0,2)*(a*H)*pow(1.+z,5.)*pow(modified_T_cmb_f(z,pba),3)*modified_T_cmb_df_dz(z,pba);
+  // if(dy_t<1e-18)
+  // dy[pba->index_bi_rho_dl] = 0.;//(a*H)*pow(1.+z,5.)*pow(modified_T_cmb_f(z,pba),3)*modified_T_cmb_df_dz(z,pba);
+  // else
+  dy[pba->index_bi_rho_dl] = dy_t;
+  // printf("z = %.3e y= %.3e dy = %.3e mod_T = %.10e\n",z, y[pba->index_bi_rho_dl],dy[pba->index_bi_rho_dl],modified_T_cmb(pba,z));
 
   return _SUCCESS_;
 
@@ -2721,6 +2885,30 @@ int background_output_budget(
 double modified_T_cmb(struct background *pba,
                       double z){
 
-return (pba->T0_star+(pba->T_cmb-pba->T0_star)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)))*(1.+z);
+// return (pba->T0_star*(1.+z)+(pba->T_cmb-pba->T0_star)*(1.+z)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)));
+return pba->T_cmb*modified_T_cmb_f(z,pba);
+
+                      }
+
+double modified_T_cmb_f(double z,
+                        struct background *pba
+                        ){
+
+// return (pba->T0_star*(1.+z)+(pba->T_cmb-pba->T0_star)*(1.+z)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)));
+double y = (z-pba->z_h)/pba->delta_z_h;
+return 1.-1./2.*pba->delta_T_cmb/pba->T_cmb*(1.+tanh(y));
+
+                      }
+
+double modified_T_cmb_df_dz(double z,
+                            struct background *pba
+                            ){
+
+// return (pba->T0_star*(1.+z)+(pba->T_cmb-pba->T0_star)*(1.+z)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)));
+double y = (z-pba->z_h)/pba->delta_z_h;
+// expansion of 1-th(y)^2 if y<<1:
+// 1 - y^2 + (2 y^4)/3 - (17 y^6)/45 + (62 y^8)/315 + O(x^9)
+// if (y<1.e-2)
+  return 1./2.*pba->delta_T_cmb/pba->T_cmb/pba->delta_z_h*(1.-tanh(y)*tanh(y));
 
                       }

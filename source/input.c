@@ -653,6 +653,7 @@ int input_read_parameters(
   double stat_f_idr = 7./8.;
 
   double Omega_tot;
+  double Omega_tot_star;
 
   int i;
 
@@ -684,14 +685,7 @@ int input_read_parameters(
              errmsg);
 
 
-   /* class_T0 modification */
-   class_read_double("T0_star",pba->T0_star);
-   class_read_double("z_h",pba->z_h);
-   class_read_double("delta_z_h",pba->delta_z_h);
-   if (pba->z_h < 0.)
-    pba->delta_z_h = 1.e-2*fabs(pba->z_h);
 
-   double T0_star_over_T_firas = pba->T0_star/2.7255;
 
    // class_test((pba->z_h)/pba->delta_z_h <= 0.8,
    //            errmsg,
@@ -770,8 +764,20 @@ int input_read_parameters(
     pba->T_cmb = pba->T0_star;
 
 
+   /* class_T0 modification */
+   class_read_double("T0_star",pba->T0_star);
+   class_read_double("z_h",pba->z_h);
+   class_read_double("delta_z_h",pba->delta_z_h);
+   if (pba->z_h < 0.)
+    pba->delta_z_h = 1.e-2*fabs(pba->z_h);
+    pba->delta_T_cmb = pba->T_cmb-pba->T0_star;
+
+   double T0_star_over_T_firas = pba->T0_star/2.7255;
+
   ///if (class_none_of_three(flag1,flag2,flag3)) {
     pba->Omega0_g = (4.*sigma_B/_c_*pow(pba->T_cmb,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+    pba->Omega0_g_star = (4.*sigma_B/_c_*pow(pba->T0_star,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+
   //}
   // else {
   //
@@ -798,7 +804,7 @@ int input_read_parameters(
   //   pba->Omega0_g *= pow(pba->T0_star/pba->T_cmb,4.);
 
   Omega_tot = pba->Omega0_g;
-
+  Omega_tot_star = pba->Omega0_g_star;
   /** - Omega_0_b (baryons) */
   class_call(parser_read_double(pfc,"Omega_b",&param1,&flag1,errmsg),
              errmsg,
@@ -815,6 +821,7 @@ int input_read_parameters(
     pba->Omega0_b = param2/pba->h/pba->h;
 
   Omega_tot += pba->Omega0_b;
+  Omega_tot_star += pba->Omega0_b;
 
 
   /* class_T0 modification */
@@ -825,6 +832,7 @@ int input_read_parameters(
     pba->Omega0_b = param3/pba->h/pba->h*pow(T0_star_over_T_firas,3.);
 
   Omega_tot += pba->Omega0_b;
+  Omega_tot_star += pba->Omega0_b;
 
   /** - Omega_0_ur (ultra-relativistic species / massless neutrino) */
 
@@ -889,6 +897,7 @@ int input_read_parameters(
   if (flag1 == _TRUE_) ppt->three_cvis2_ur = 3.*param1;
 
   Omega_tot += pba->Omega0_ur;
+  Omega_tot_star += pba->Omega0_ur;
 
   /** - Omega_0_idr (interacting dark radiation) */
   /* Can take both the ethos parameters, and the NADM parameters */
@@ -927,6 +936,7 @@ int input_read_parameters(
   pba->Omega0_idr = stat_f_idr*pow(pba->T_idr/pba->T_cmb,4.)*pba->Omega0_g;
 
   Omega_tot += pba->Omega0_idr;
+  Omega_tot_star += pba->Omega0_idr;
 
   /** - Omega_0_cdm (CDM) */
   class_call(parser_read_double(pfc,"Omega_cdm",&param1,&flag1,errmsg),
@@ -955,6 +965,7 @@ int input_read_parameters(
 
 
   Omega_tot += pba->Omega0_cdm;
+  Omega_tot_star += pba->Omega0_cdm;
 
   /** - Omega_0_icdm_dr (DM interacting with DR) */
   class_call(parser_read_double(pfc,"Omega_idm_dr",&param1,&flag1,errmsg),
@@ -990,15 +1001,18 @@ int input_read_parameters(
     pba->Omega0_cdm -= pba->Omega0_idm_dr;
     /* to be consistent, remove same amount from Omega_tot */
     Omega_tot -= pba->Omega0_idm_dr;
+    Omega_tot_star -= pba->Omega0_idm_dr;
     /* avoid Omega0_cdm =0 in synchronous gauge */
     if ((ppt->gauge == synchronous) && (pba->Omega0_cdm==0)) {
       pba->Omega0_cdm += ppr->Omega0_cdm_min_synchronous;
       Omega_tot += ppr->Omega0_cdm_min_synchronous;
+      Omega_tot_star += ppr->Omega0_cdm_min_synchronous;
       pba->Omega0_idm_dr -= ppr->Omega0_cdm_min_synchronous;
     }
   }
 
   Omega_tot += pba->Omega0_idm_dr;
+  Omega_tot_star += pba->Omega0_idm_dr;
 
   if (pba->Omega0_idm_dr > 0.) {
 
@@ -1137,6 +1151,7 @@ int input_read_parameters(
   if (pba->Omega0_dcdmdr > 0) {
 
     Omega_tot += pba->Omega0_dcdmdr;
+    Omega_tot_star += pba->Omega0_dcdmdr;
 
     /** - Read Omega_ini_dcdm or omega_ini_dcdm */
     class_call(parser_read_double(pfc,"Omega_ini_dcdm",&param1,&flag1,errmsg),
@@ -1290,12 +1305,14 @@ int input_read_parameters(
                    errmsg);
         //printf("M_ncdm:%g\n",pba->M_ncdm[n]);
         pba->m_ncdm_in_eV[n] = _k_B_/_eV_*pba->T_ncdm[n]*pba->M_ncdm[n]*pba->T_cmb;
+        // pba->m_ncdm_in_eV[n] = _k_B_/_eV_*pba->T_ncdm[n]*pba->M_ncdm[n]*pba->T0_star;
       }
       pba->Omega0_ncdm_tot += pba->Omega0_ncdm[n];
       //printf("Adding %g to total Omega..\n",pba->Omega0_ncdm[n]);
     }
   }
   Omega_tot += pba->Omega0_ncdm_tot;
+  Omega_tot_star += pba->Omega0_ncdm_tot;
 
   /** - Omega_0_k (effective fractional density of curvature) */
   class_read_double("Omega_k",pba->Omega0_k);
@@ -1348,6 +1365,7 @@ int input_read_parameters(
   if (flag1 == _FALSE_) {
     //Fill with Lambda
     pba->Omega0_lambda= 1. - pba->Omega0_k - Omega_tot;
+    pba->Omega0_lambda_star = 1. - pba->Omega0_k - Omega_tot_star;
     if (input_verbose > 0) printf(" -> matched budget equations by adjusting Omega_Lambda = %e\n",pba->Omega0_lambda);
   }
   else if (flag2 == _FALSE_) {
