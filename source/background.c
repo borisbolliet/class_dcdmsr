@@ -419,8 +419,8 @@ else{
       /* (rho_ncdm1 - 3 p_ncdm1) is the "non-relativistic" contribution
          to rho_ncdm1 */
       rho_m += rho_ncdm - 3.* p_ncdm;
-      printf("done with ncdm\n");
-      exit(0);
+      // printf("done with ncdm\n");
+      // exit(0);
     }
   }
 
@@ -1601,9 +1601,10 @@ int background_ncdm_init(
         pba->dlnf0_dlnq_ncdm[k][index_q] = q/f0*df0dq;
     }
 
-    pba->factor_ncdm[k]=pba->deg_ncdm[k]*4*_PI_*pow(pba->T_cmb*pba->T_ncdm[k]*_k_B_,4)*8*_PI_*_G_
+    // pba->factor_ncdm[k]=pba->deg_ncdm[k]*4*_PI_*pow(pba->T_cmb*pba->T_ncdm[k]*_k_B_,4)*8*_PI_*_G_
+    //   /3./pow(_h_P_/2./_PI_,3)/pow(_c_,7)*_Mpc_over_m_*_Mpc_over_m_;
+    pba->factor_ncdm[k]=pba->deg_ncdm[k]*4*_PI_*pow(pba->T_cmb*modified_T_cmb_f(1e14,pba)*pba->T_ncdm[k]*_k_B_,4)*8*_PI_*_G_
       /3./pow(_h_P_/2./_PI_,3)/pow(_c_,7)*_Mpc_over_m_*_Mpc_over_m_;
-
     /* If allocated, deallocate interpolation table:  */
     if ((pba->got_files!=NULL)&&(pba->got_files[k]==_TRUE_)){
       free(pbadist.q);
