@@ -750,11 +750,11 @@ int background_init(
              from the definition of N_eff) */
 
           // <!> BB: Do we need to change something here? <!>
-          // rho_nu_rel = 56.0/45.0*pow(_PI_,6)*pow(4.0/11.0,4.0/3.0)*_G_/pow(_h_P_,3)/pow(_c_,7)*
-          //   pow(_Mpc_over_m_,2)*pow(pba->T_cmb*_k_B_,4);
-
           rho_nu_rel = 56.0/45.0*pow(_PI_,6)*pow(4.0/11.0,4.0/3.0)*_G_/pow(_h_P_,3)/pow(_c_,7)*
-            pow(_Mpc_over_m_,2)*pow(pba->T0_star*_k_B_,4);
+            pow(_Mpc_over_m_,2)*pow(pba->T_cmb*modified_T_cmb_f(1e14,pba)*_k_B_,4);
+
+          // rho_nu_rel = 56.0/45.0*pow(_PI_,6)*pow(4.0/11.0,4.0/3.0)*_G_/pow(_h_P_,3)/pow(_c_,7)*
+          //   pow(_Mpc_over_m_,2)*pow(pba->T0_star*_k_B_,4);
 
           printf(" -> ncdm species i=%d sampled with %d (resp. %d) points for purpose of background (resp. perturbation) integration. In the relativistic limit it gives Delta N_eff = %g\n",
                  n_ncdm+1,
@@ -2896,8 +2896,13 @@ double modified_T_cmb_f(double z,
                         ){
 
 // return (pba->T0_star*(1.+z)+(pba->T_cmb-pba->T0_star)*(1.+z)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)));
+if (pba->z_h<0.){
+  return 1.;
+}
+else{
 double y = (z-pba->z_h)/pba->delta_z_h;
 return 1.-1./2.*pba->delta_T_cmb/pba->T_cmb*(1.+tanh(y));
+}
 
                       }
 
@@ -2906,10 +2911,15 @@ double modified_T_cmb_df_dz(double z,
                             ){
 
 // return (pba->T0_star*(1.+z)+(pba->T_cmb-pba->T0_star)*(1.+z)*0.5*(1.-tanh((z-pba->z_h)/pba->delta_z_h)));
+if (pba->z_h<0.){
+  return 0.;
+}
+else{
 double y = (z-pba->z_h)/pba->delta_z_h;
 // expansion of 1-th(y)^2 if y<<1:
 // 1 - y^2 + (2 y^4)/3 - (17 y^6)/45 + (62 y^8)/315 + O(x^9)
 // if (y<1.e-2)
-  return 1./2.*pba->delta_T_cmb/pba->T_cmb/pba->delta_z_h*(1.-tanh(y)*tanh(y));
+return 1./2.*pba->delta_T_cmb/pba->T_cmb/pba->delta_z_h*(1.-tanh(y)*tanh(y));
+}
 
                       }
