@@ -489,7 +489,14 @@ int thermodynamics_init(
                pba->error_message,
                pth->error_message);
 
-    R = 3./4.*pvecback[pba->index_bg_rho_b]/pvecback[pba->index_bg_rho_g];
+   double rho_g;
+   if (pba->flag_solve_full_dynamic_dl == 1 )
+   rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+   else
+   rho_g = pvecback[pba->index_bg_rho_g];
+
+    // R = 3./4.*pvecback[pba->index_bg_rho_b]/pvecback[pba->index_bg_rho_g];
+    R = 3./4.*pvecback[pba->index_bg_rho_b]/rho_g;
 
     pth->thermodynamics_table[index_tau*pth->th_size+pth->index_th_ddkappa] =
       -1./R*pth->thermodynamics_table[index_tau*pth->th_size+pth->index_th_dkappa];
@@ -623,7 +630,15 @@ int thermodynamics_init(
                  pba->error_message,
                  pth->error_message);
 
-      R = 3./4.*pvecback[pba->index_bg_rho_b]/pvecback[pba->index_bg_rho_g];
+   double rho_g;
+   if (pba->flag_solve_full_dynamic_dl == 1 )
+   rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+   else
+   rho_g = pvecback[pba->index_bg_rho_g];
+
+    // R = 3./4.*pvecback[pba->index_bg_rho_b]/pvecback[pba->index_bg_rho_g];
+    R = 3./4.*pvecback[pba->index_bg_rho_b]/rho_g;
+      // R = 3./4.*pvecback[pba->index_bg_rho_b]/pvecback[pba->index_bg_rho_g];
 
       pth->thermodynamics_table[index_tau*pth->th_size+pth->index_th_ddkappa] =
         1./6./pth->thermodynamics_table[(pth->tt_size-1-index_tau)*pth->th_size+pth->index_th_dkappa]
@@ -1593,11 +1608,24 @@ int thermodynamics_helium_from_bbn(
              pba->error_message,
              pth->error_message);
 
+   double rho_g;
+   if (pba->flag_solve_full_dynamic_dl == 1 )
+   rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+   else
+   rho_g = pvecback[pba->index_bg_rho_g];
+
+
+  // Neff_bbn = (pvecback[pba->index_bg_Omega_r]
+  //             *pvecback[pba->index_bg_rho_crit]
+  //             -pvecback[pba->index_bg_rho_g])
+  //   /(7./8.*pow(4./11.,4./3.)*pvecback[pba->index_bg_rho_g]);
+  //
+
+
   Neff_bbn = (pvecback[pba->index_bg_Omega_r]
               *pvecback[pba->index_bg_rho_crit]
-              -pvecback[pba->index_bg_rho_g])
-    /(7./8.*pow(4./11.,4./3.)*pvecback[pba->index_bg_rho_g]);
-
+              -rho_g)
+    /(7./8.*pow(4./11.,4./3.)*rho_g);
   free(pvecback);
 
   //  printf("Neff early = %g, Neff at bbn: %g\n",pba->Neff,Neff_bbn);
@@ -3010,9 +3038,19 @@ int thermodynamics_reionization_sample(
 
     /** - --> derivative of baryon temperature */
 
+
+   double rho_g;
+   if (pba->flag_solve_full_dynamic_dl == 1 )
+   rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+   else
+   rho_g = pvecback[pba->index_bg_rho_g];
     dTdz=2./(1+z)*preio->reionization_table[i*preio->re_size+preio->index_re_Tb]
-      -2.*mu/_m_e_*4.*pvecback[pba->index_bg_rho_g]/3./pvecback[pba->index_bg_rho_b]*opacity*
+      -2.*mu/_m_e_*4.*rho_g/3./pvecback[pba->index_bg_rho_b]*opacity*
       (pvecback[pba->index_bg_modified_tcmb]-preio->reionization_table[i*preio->re_size+preio->index_re_Tb])/pvecback[pba->index_bg_H];
+    //
+    // dTdz=2./(1+z)*preio->reionization_table[i*preio->re_size+preio->index_re_Tb]
+    //   -2.*mu/_m_e_*4.*pvecback[pba->index_bg_rho_g]/3./pvecback[pba->index_bg_rho_b]*opacity*
+    //   (pvecback[pba->index_bg_modified_tcmb]-preio->reionization_table[i*preio->re_size+preio->index_re_Tb])/pvecback[pba->index_bg_H];
       // (pba->T_cmb * (1.+z)-preio->reionization_table[i*preio->re_size+preio->index_re_Tb])/pvecback[pba->index_bg_H];
 
     if (preco->annihilation > 0) {

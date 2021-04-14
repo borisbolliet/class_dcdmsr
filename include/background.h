@@ -59,6 +59,7 @@ struct background
   int index_bg_modified_rho_lambda;
   int index_bg_modified_rho_g;
   int index_bg_delta_rho_g;
+  int index_bg_rho_g_dl;
   double Omega0_lambda_star;
   double Omega0_g_star;
   int flag_solve_full_dynamic_dl;

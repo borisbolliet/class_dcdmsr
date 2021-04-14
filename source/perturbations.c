@@ -5113,7 +5113,8 @@ int perturb_initial_conditions(struct precision * ppr,
     a_prime_over_a = ppw->pvecback[pba->index_bg_H]*a;
 
     /* 8piG/3 rho_r(t_i) */
-    rho_r = ppw->pvecback[pba->index_bg_rho_g];
+    // rho_r = ppw->pvecback[pba->index_bg_rho_g];
+    rho_r = ppw->pvecback[pba->index_bg_rho_g] + ppw->pvecback[pba->index_bg_rho_g_dl];
 
     /* 8piG/3 rho_m(t_i) */
     rho_m = ppw->pvecback[pba->index_bg_rho_b];
@@ -5163,6 +5164,7 @@ int perturb_initial_conditions(struct precision * ppr,
     fracnu = rho_nu/rho_r;
 
     /* f_g = Omega_g(t_i) / Omega_r(t_i) */
+    // fracg = (ppw->pvecback[pba->index_bg_rho_g]+pvecback[pba->index_bg_rho_g_dl])/rho_r;
     fracg = ppw->pvecback[pba->index_bg_rho_g]/rho_r;
 
     /* f_b = Omega_b(t_i) / Omega_m(t_i) */
@@ -8427,6 +8429,9 @@ int perturb_derivs(double tau,
   a2 = a*a;
   a_prime_over_a = pvecback[pba->index_bg_H] * a;
   R = 4./3. * pvecback[pba->index_bg_rho_g]/pvecback[pba->index_bg_rho_b];
+  // double rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+  // R = 4./3. * rho_g/pvecback[pba->index_bg_rho_b];
+
 
   if((pba->has_idm_dr==_TRUE_)){
     Sinv = 4./3. * pvecback[pba->index_bg_rho_idr]/ pvecback[pba->index_bg_rho_idm_dr];

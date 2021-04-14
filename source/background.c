@@ -317,7 +317,8 @@ int background_functions(
 
 if (pba->flag_solve_full_dynamic_dl == 1 ){
   //
-  pvecback[pba->index_bg_rho_g] = pvecback[pba->index_bg_modified_rho_g];
+  pvecback[pba->index_bg_rho_g] = pvecback[pba->index_bg_modified_rho_g];//-pvecback[pba->index_bg_delta_rho_g];
+  pvecback[pba->index_bg_rho_g_dl] = 0.;//pvecback[pba->index_bg_delta_rho_g];
   rho_tot += pvecback[pba->index_bg_modified_rho_g];
   p_tot += (1./3.) * pvecback[pba->index_bg_modified_rho_g];
   dp_dloga += -(4./3.) * pvecback[pba->index_bg_modified_rho_g];
@@ -1054,6 +1055,7 @@ int background_indices(
   class_define_index(pba->index_bg_modified_rho_g,_TRUE_,index_bg,1);
   class_define_index(pba->index_bg_delta_rho_g,_TRUE_,index_bg,1);
   class_define_index(pba->index_bg_modified_rho_lambda,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_rho_g_dl,_TRUE_,index_bg,1);
   /* class_T0 modif */
 
   /* index for scale factor */
@@ -2395,6 +2397,7 @@ int background_output_titles(struct background * pba,
   class_store_columntitle(titles,"ang.diam.dist.",_TRUE_);
   class_store_columntitle(titles,"lum. dist.",_TRUE_);
   class_store_columntitle(titles,"comov.snd.hrz.",_TRUE_);
+  class_store_columntitle(titles,"(.)rho_g_dl",_TRUE_);
   class_store_columntitle(titles,"(.)rho_g",_TRUE_);
   class_store_columntitle(titles,"(.)rho_b",_TRUE_);
   class_store_columntitle(titles,"(.)rho_cdm",pba->has_cdm);
@@ -2468,6 +2471,7 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_ang_distance],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_lum_distance],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rs],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_g_dl],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_g],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_b],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_cdm],pba->has_cdm,storeidx);
@@ -2596,7 +2600,15 @@ int background_derivs(
              "rho_g = %e instead of strictly positive",pvecback[pba->index_bg_rho_g]);
 
   /** - calculate \f$ rs' = c_s \f$*/
-  dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+  double rho_g;
+  if (pba->flag_solve_full_dynamic_dl == 1 )
+  rho_g = pvecback[pba->index_bg_rho_g] + pvecback[pba->index_bg_rho_g_dl];
+  else
+  rho_g = pvecback[pba->index_bg_rho_g];
+
+  dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./rho_g))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+  // dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+
   // dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_modified_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
 
   /** - solve second order growth equation  \f$ [D''(\tau)=-aHD'(\tau)+3/2 a^2 \rho_M D(\tau) \f$ */

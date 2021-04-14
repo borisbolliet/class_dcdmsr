@@ -759,14 +759,15 @@ int input_read_parameters(
   class_test(class_at_least_two_of_three(flag1,flag2,flag3),
              errmsg,
              "In input file, you can only enter one of T_cmb, Omega_g or omega_g, choose one");
-  //class_T0 modif
-  if (pba->z_h<0.)
-    pba->T_cmb = pba->T0_star;
+
 
 
    /* class_T0 modification */
    class_read_double("T0_star",pba->T0_star);
    class_read_double("z_h",pba->z_h);
+   //class_T0 modif
+   if (pba->z_h<0.)
+     pba->T_cmb = pba->T0_star;
    class_read_double("delta_z_h",pba->delta_z_h);
    if (pba->z_h < 0.)
     pba->delta_z_h = 1.e-2*fabs(pba->z_h);
