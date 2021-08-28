@@ -5136,7 +5136,7 @@ int perturb_initial_conditions(struct precision * ppr,
       rho_m += ppw->pvecback[pba->index_bg_rho_dcdm];
     }
 
-    if (pba->has_dr == _TRUE_) {
+    if ((pba->has_dr == _TRUE_) && (pba->dr_is_sr == _FALSE_)) {
       rho_r += ppw->pvecback[pba->index_bg_rho_dr];
       rho_nu += ppw->pvecback[pba->index_bg_rho_dr];
     }
@@ -6670,7 +6670,7 @@ int perturb_total_stress_energy(
 
     /* ultra-relativistic decay radiation */
 
-    if (pba->has_dr == _TRUE_) {
+    if ((pba->has_dr == _TRUE_) && (pba->dr_is_sr == _FALSE_)) {
       /* We have delta_rho_dr = rho_dr * F0_dr / f, where F follows the
          convention in astro-ph/9907388 and f is defined as
          f = rho_dr*a^4/rho_crit_today. In CLASS density units
@@ -8367,7 +8367,8 @@ int perturb_derivs(double tau,
   double s2_squared, ssqrt3;
 
   /* for use with dcdm and dr */
-  double f_dr, fprime_dr;
+  double f_dr, fprime_dr, fprime_dr_over_f_dr;
+  fprime_dr_over_f_dr = 0.;
 
   double Sinv=0., dmu_idm_dr=0., dmu_idr=0., tca_slip_idm_dr=0.;
 
@@ -8562,11 +8563,73 @@ int perturb_derivs(double tau,
 
     /** - --> (e) BEGINNING OF ACTUAL SYSTEM OF EQUATIONS OF EVOLUTION */
 
+    /** - ---> dcdm and dr */
+
+    if (pba->has_dcdm == _TRUE_) {
+
+      /** - ----> dcdm */
+
+      dy[pv->index_pt_delta_dcdm] = -(y[pv->index_pt_theta_dcdm]+metric_continuity)
+        - a * pba->Gamma_dcdm / k2 * metric_euler; /* dcdm density */
+
+      dy[pv->index_pt_theta_dcdm] = - a_prime_over_a*y[pv->index_pt_theta_dcdm] + metric_euler; /* dcdm velocity */
+    }
+
+    /** - ---> dr */
+
+    if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)) {
+
+
+      /* f = rho_dr*a^4/rho_crit_today. In CLASS density units
+         rho_crit_today = H0^2.
+      */
+
+      f_dr = pow(pow(a/pba->a_today,2)/pba->H0,2)*pvecback[pba->index_bg_rho_dr];
+      fprime_dr = pba->Gamma_dcdm*pvecback[pba->index_bg_rho_dcdm]*pow(a,5)/pow(pba->H0,2);
+      fprime_dr_over_f_dr = a*pba->Gamma_dcdm*pvecback[pba->index_bg_rho_dcdm]/pvecback[pba->index_bg_rho_g];
+
+
+
+      /** - ----> dr F0 */
+      dy[pv->index_pt_F0_dr] = -k*y[pv->index_pt_F0_dr+1]-4./3.*metric_continuity*f_dr+
+        fprime_dr*(y[pv->index_pt_delta_dcdm]+metric_euler/k2);
+
+      /** - ----> dr F1 */
+      dy[pv->index_pt_F0_dr+1] = k/3.*y[pv->index_pt_F0_dr]-2./3.*k*y[pv->index_pt_F0_dr+2]*s2_squared +
+        4*metric_euler/(3.*k)*f_dr + fprime_dr/k*y[pv->index_pt_theta_dcdm];
+
+      /** - ----> exact dr F2 */
+      dy[pv->index_pt_F0_dr+2] = 8./15.*(3./4.*k*y[pv->index_pt_F0_dr+1]+metric_shear*f_dr) -3./5.*k*s_l[3]/s_l[2]*y[pv->index_pt_F0_dr+3];
+
+      /** - ----> exact dr l=3 */
+      l = 3;
+      dy[pv->index_pt_F0_dr+3] = k/(2.*l+1.)*
+        (l*s_l[l]*s_l[2]*y[pv->index_pt_F0_dr+2]-(l+1.)*s_l[l+1]*y[pv->index_pt_F0_dr+4]);
+
+      /** - ----> exact dr l>3 */
+      for (l = 4; l < pv->l_max_dr; l++) {
+        dy[pv->index_pt_F0_dr+l] = k/(2.*l+1)*
+          (l*s_l[l]*y[pv->index_pt_F0_dr+l-1]-(l+1.)*s_l[l+1]*y[pv->index_pt_F0_dr+l+1]);
+      }
+
+      /** - ----> exact dr lmax_dr */
+      l = pv->l_max_dr;
+      dy[pv->index_pt_F0_dr+l] =
+        k*(s_l[l]*y[pv->index_pt_F0_dr+l-1]-(1.+l)*cotKgen*y[pv->index_pt_F0_dr+l]);
+
+    }
+
+
+
+
     /** - ---> photon temperature density */
 
     if (ppw->approx[ppw->index_ap_rsa] == (int)rsa_off) {
 
       dy[pv->index_pt_delta_g] = -4./3.*(theta_g+metric_continuity);
+
+      if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+      dy[pv->index_pt_delta_g] += fprime_dr_over_f_dr*(y[pv->index_pt_delta_dcdm]-delta_g+metric_euler/k2);
 
     }
 
@@ -8622,11 +8685,18 @@ int perturb_derivs(double tau,
           + metric_euler
           + pvecthermo[pth->index_th_dkappa]*(theta_b-theta_g);
 
+
+          if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+          dy[pv->index_pt_theta_g] += -3./4.*fprime_dr_over_f_dr*(4./3.*theta_g-y[pv->index_pt_theta_dcdm]);
+
         /** - -----> photon temperature shear */
         dy[pv->index_pt_shear_g] =
           0.5*(8./15.*(theta_g+metric_shear)
                -3./5.*k*s_l[3]/s_l[2]*y[pv->index_pt_l3_g]
                -pvecthermo[pth->index_th_dkappa]*(2.*y[pv->index_pt_shear_g]-4./5./s_l[2]*P0));
+
+       if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+       dy[pv->index_pt_shear_g] += -fprime_dr_over_f_dr*y[pv->index_pt_shear_g];
 
         /** - -----> photon temperature l=3 */
 
@@ -8635,12 +8705,19 @@ int perturb_derivs(double tau,
           (l*s_l[l]*2.*s_l[2]*y[pv->index_pt_shear_g]-(l+1.)*s_l[l+1]*y[pv->index_pt_l3_g+1])
           - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_l3_g];
 
+       if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+        dy[pv->index_pt_l3_g] += -fprime_dr_over_f_dr*y[pv->index_pt_l3_g];
+
         /** - -----> photon temperature l>3 */
         for (l = 4; l < pv->l_max_g; l++) {
 
           dy[pv->index_pt_delta_g+l] = k/(2.0*l+1.0)*
             (l*s_l[l]*y[pv->index_pt_delta_g+l-1]-(l+1)*s_l[l+1]*y[pv->index_pt_delta_g+l+1])
             - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_delta_g+l];
+
+       if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+        dy[pv->index_pt_delta_g+l] += -fprime_dr_over_f_dr*y[pv->index_pt_delta_g+l];
+
         }
 
         /** - -----> photon temperature lmax */
@@ -8648,6 +8725,9 @@ int perturb_derivs(double tau,
         dy[pv->index_pt_delta_g+l] =
           k*(s_l[l]*y[pv->index_pt_delta_g+l-1]-(1.+l)*cotKgen*y[pv->index_pt_delta_g+l])
           - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_delta_g+l];
+
+       if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
+        dy[pv->index_pt_delta_g+l] += -fprime_dr_over_f_dr*y[pv->index_pt_delta_g+l];
 
         /** - -----> photon polarization l=0 */
 
@@ -8761,58 +8841,6 @@ int perturb_derivs(double tau,
 
     }
 
-    /** - ---> dcdm and dr */
-
-    if (pba->has_dcdm == _TRUE_) {
-
-      /** - ----> dcdm */
-
-      dy[pv->index_pt_delta_dcdm] = -(y[pv->index_pt_theta_dcdm]+metric_continuity)
-        - a * pba->Gamma_dcdm / k2 * metric_euler; /* dcdm density */
-
-      dy[pv->index_pt_theta_dcdm] = - a_prime_over_a*y[pv->index_pt_theta_dcdm] + metric_euler; /* dcdm velocity */
-    }
-
-    /** - ---> dr */
-
-    if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)) {
-
-
-      /* f = rho_dr*a^4/rho_crit_today. In CLASS density units
-         rho_crit_today = H0^2.
-      */
-
-      f_dr = pow(pow(a/pba->a_today,2)/pba->H0,2)*pvecback[pba->index_bg_rho_dr];
-      fprime_dr = pba->Gamma_dcdm*pvecback[pba->index_bg_rho_dcdm]*pow(a,5)/pow(pba->H0,2);
-
-      /** - ----> dr F0 */
-      dy[pv->index_pt_F0_dr] = -k*y[pv->index_pt_F0_dr+1]-4./3.*metric_continuity*f_dr+
-        fprime_dr*(y[pv->index_pt_delta_dcdm]+metric_euler/k2);
-
-      /** - ----> dr F1 */
-      dy[pv->index_pt_F0_dr+1] = k/3.*y[pv->index_pt_F0_dr]-2./3.*k*y[pv->index_pt_F0_dr+2]*s2_squared +
-        4*metric_euler/(3.*k)*f_dr + fprime_dr/k*y[pv->index_pt_theta_dcdm];
-
-      /** - ----> exact dr F2 */
-      dy[pv->index_pt_F0_dr+2] = 8./15.*(3./4.*k*y[pv->index_pt_F0_dr+1]+metric_shear*f_dr) -3./5.*k*s_l[3]/s_l[2]*y[pv->index_pt_F0_dr+3];
-
-      /** - ----> exact dr l=3 */
-      l = 3;
-      dy[pv->index_pt_F0_dr+3] = k/(2.*l+1.)*
-        (l*s_l[l]*s_l[2]*y[pv->index_pt_F0_dr+2]-(l+1.)*s_l[l+1]*y[pv->index_pt_F0_dr+4]);
-
-      /** - ----> exact dr l>3 */
-      for (l = 4; l < pv->l_max_dr; l++) {
-        dy[pv->index_pt_F0_dr+l] = k/(2.*l+1)*
-          (l*s_l[l]*y[pv->index_pt_F0_dr+l-1]-(l+1.)*s_l[l+1]*y[pv->index_pt_F0_dr+l+1]);
-      }
-
-      /** - ----> exact dr lmax_dr */
-      l = pv->l_max_dr;
-      dy[pv->index_pt_F0_dr+l] =
-        k*(s_l[l]*y[pv->index_pt_F0_dr+l-1]-(1.+l)*cotKgen*y[pv->index_pt_F0_dr+l]);
-
-    }
 
     /** - ---> fluid (fld) */
 

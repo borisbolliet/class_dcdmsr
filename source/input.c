@@ -1112,7 +1112,10 @@ int input_read_parameters(
     /* Convert to Mpc */
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
+    class_read_int("dr_is_sr",pba->dr_is_sr);
+
   }
+  // printf("dr_is_sr = %d\n",pba->dr_is_sr);
 
   /** - non-cold relics (ncdm) */
   class_read_int("N_ncdm",N_ncdm);
@@ -3186,6 +3189,7 @@ int input_default_params(
   pba->Omega0_dcdmdr = 0.0;
   pba->Omega0_dcdm = 0.0;
   pba->Gamma_dcdm = 0.0;
+  pba->dr_is_sr = 0;
   pba->N_ncdm = 0;
   pba->Omega0_ncdm_tot = 0.;
   pba->ksi_ncdm_default = 0.;

@@ -337,6 +337,10 @@ int background_functions(
     p_tot += (1./3.)*pvecback[pba->index_bg_rho_dr];
     dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_dr];
     rho_r += pvecback[pba->index_bg_rho_dr];
+
+    if (pba->dr_is_sr ==  1){
+      pvecback[pba->index_bg_rho_g] += pvecback[pba->index_bg_rho_dr];
+    }
   }
 
   /* Scalar field */
@@ -1910,6 +1914,9 @@ int background_solve(
       printf("     -> Omega0_dr+Omega0_dcdm = %f, input value = %f\n",
              pba->Omega0_dr+pba->Omega0_dcdm,pba->Omega0_dcdmdr);
       printf("     -> Omega_ini_dcdm/Omega_b = %f\n",pba->Omega_ini_dcdm/pba->Omega0_b);
+   if(pba->dr_is_sr == _TRUE_){
+      printf("treating dr as standard radiation.\n");
+   }
     }
     if (pba->has_scf == _TRUE_){
       printf("    Scalar field details:\n");
