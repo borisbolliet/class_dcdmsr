@@ -1801,6 +1801,7 @@ int background_solve(
   }
   if (pba->has_dr == _TRUE_){
     pba->Omega0_dr = pvecback_integration[pba->index_bi_rho_dr]/pba->H0/pba->H0;
+
   }
 
   /** - allocate background tables */
@@ -1905,6 +1906,17 @@ int background_solve(
     printf(" -> conformal age = %f Mpc\n",pba->conformal_age);
   }
 
+
+if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_)){
+      // rho_g = M_dr_is_sr.get_background()['(.)rho_g']
+      double rho_g_lcdm = pba->Omega0_g*(pba->H0*pba->H0);
+      // T_cmb_eff = T_cmb*(rho_g/rho_g_lcdm)**0.25
+      double T_cmb_dcdmsr = pba->T_cmb*pow(pvecback[pba->index_bg_rho_g]/rho_g_lcdm,0.25);
+      pba->T_cmb_dcdmsr = T_cmb_dcdmsr;
+
+
+   }
+
   if (pba->background_verbose > 2) {
     printf(" -> pba->Neff = %f\n",pba->Neff);
     if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)){
@@ -1916,6 +1928,9 @@ int background_solve(
       printf("     -> Omega_ini_dcdm/Omega_b = %f\n",pba->Omega_ini_dcdm/pba->Omega0_b);
    if(pba->dr_is_sr == _TRUE_){
       printf("treating dr as standard radiation.\n");
+
+      printf("T_cmb_dcdmsr = %.8e\n",pba->T_cmb_dcdmsr);
+
    }
     }
     if (pba->has_scf == _TRUE_){

@@ -276,12 +276,12 @@ int input_init(
    *
    */
 
-  char * const target_namestrings[] = {"100*theta_s","Omega_dcdmdr","omega_dcdmdr",
-                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","sigma8"};
-  char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm",
-                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","A_s"};
-  enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background,
-                                        cs_background, cs_background, cs_background, cs_nonlinear};
+  char * const target_namestrings[] = {"100*theta_s","Omega_dm_tot","Omega_dcdmdr","omega_dcdmdr",
+                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","f_dm_decay","sigma8"};
+  char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm","Omega_ini_dcdm",
+                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s"};
+  enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
+                                        cs_background, cs_background, cs_background, cs_background, cs_nonlinear};
 
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
 
@@ -381,6 +381,7 @@ int input_init(
                 target_namestrings[fzw.target_name[0]]
                 );
       }
+      // exit(0);
       /* We can do 1 dimensional root finding */
       /* If shooting fails, postpone error to background module to play nice with MontePython. */
       class_call_try(input_find_root(&xzero,
@@ -449,6 +450,15 @@ int input_init(
     if (input_verbose > 1) {
       fprintf(stdout,"Shooting completed using %d function evaluations\n",fevals);
     }
+
+    // double rho_dcdm_today = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_dcdm];
+    // double rho_dr_today = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_dr];
+    // double Omega_dcdm = (rho_dcdm_today)/(pba->H0*pba->H0);
+    // double Omega_dr = (rho_dr_today)/(pba->H0*pba->H0);
+    // printf("Omega_dcdm = %.3e Omega_dr = %.3e\n",Omega_dcdm,Omega_dr);
+
+    // printf("exiting after shooting\n");
+    // exit(0);
 
 
     /** - --> Read all parameters from tuned pfc */
@@ -908,7 +918,7 @@ int input_read_parameters(
 
   if ((ppt->gauge == synchronous) && (pba->Omega0_cdm==0)) pba->Omega0_cdm = ppr->Omega0_cdm_min_synchronous;
 
-  Omega_tot += pba->Omega0_cdm;
+  // Omega_tot += pba->Omega0_cdm;
 
   /** - Omega_0_icdm_dr (DM interacting with DR) */
   class_call(parser_read_double(pfc,"Omega_idm_dr",&param1,&flag1,errmsg),
@@ -1074,6 +1084,29 @@ int input_read_parameters(
   }
 
   /** - Omega_0_dcdmdr (DCDM) */
+  class_call(parser_read_double(pfc,"Omega_dm_tot",&param1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  if (flag1 == _TRUE_){
+    class_call(parser_read_double(pfc,"f_dm_decay",&param2,&flag2,errmsg),
+               errmsg,
+               errmsg);
+    pba->f_dm_decay = param2;
+
+    pba->Omega0_cdm = param1*(1.-pba->f_dm_decay);
+    pba->Omega0_dcdmdr = param1*pba->f_dm_decay;
+    /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
+    class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
+    /* Convert to Mpc */
+    pba->Gamma_dcdm *= (1.e3 / _c_);
+
+    class_read_int("dr_is_sr",pba->dr_is_sr);
+
+  }
+  else{
+
+
+
   class_call(parser_read_double(pfc,"Omega_dcdmdr",&param1,&flag1,errmsg),
              errmsg,
              errmsg);
@@ -1088,9 +1121,35 @@ int input_read_parameters(
   if (flag2 == _TRUE_)
     pba->Omega0_dcdmdr = param2/pba->h/pba->h;
 
+    // printf("pba->Omega0_dcdmdr = %.8e\n",pba->Omega0_dcdmdr);
+  }
+
+
   if (pba->Omega0_dcdmdr > 0) {
 
     Omega_tot += pba->Omega0_dcdmdr;
+
+    // class_call(parser_read_double(pfc,"f_dm_decay",&param1,&flag1,errmsg),
+    //            errmsg,
+    //            errmsg);
+    // if (flag1 == _TRUE_){
+    //   class_call(parser_read_double(pfc,"Omega_ini_dm_tot",&param2,&flag2,errmsg),
+    //              errmsg,
+    //              errmsg);
+    //       if (flag2 == _FALSE_){
+    //         printf("you need to specify Omega_ini_dm_tot\n");
+    //         pba->Omega0_cdm
+    //
+    //       }
+    //
+    //
+    //   pba->f_dm_decay = param1;
+    //   pba->Omega_ini_dcdm = pba->f_dm_decay/(1.-pba->f_dm_decay)*pba->Omega0_cdm;
+    //
+    // printf("pba->f_dm_decay = %.8e\n",pba->f_dm_decay);
+    // printf("pba->Omega_ini_dcdm = %.8e\n",pba->Omega_ini_dcdm);
+    // }
+    // else{
 
     /** - Read Omega_ini_dcdm or omega_ini_dcdm */
     class_call(parser_read_double(pfc,"Omega_ini_dcdm",&param1,&flag1,errmsg),
@@ -1106,6 +1165,7 @@ int input_read_parameters(
       pba->Omega_ini_dcdm = param1;
     if (flag2 == _TRUE_)
       pba->Omega_ini_dcdm = param2/pba->h/pba->h;
+    // }
 
     /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
     class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
@@ -1115,6 +1175,8 @@ int input_read_parameters(
     class_read_int("dr_is_sr",pba->dr_is_sr);
 
   }
+
+Omega_tot += pba->Omega0_cdm;
   // printf("dr_is_sr = %d\n",pba->dr_is_sr);
 
   /** - non-cold relics (ncdm) */
@@ -3190,6 +3252,7 @@ int input_default_params(
   pba->Omega0_dcdm = 0.0;
   pba->Gamma_dcdm = 0.0;
   pba->dr_is_sr = 0;
+  pba->f_dm_decay = 0.;
   pba->N_ncdm = 0;
   pba->Omega0_ncdm_tot = 0.;
   pba->ksi_ncdm_default = 0.;
@@ -3822,6 +3885,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       output[i] = 100.*th.rs_rec/th.ra_rec-pfzw->target_value[i];
       break;
     case Omega_dcdmdr:
+    case Omega_dm_tot:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
       if (ba.has_dr == _TRUE_)
         rho_dr_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dr];
@@ -3844,6 +3908,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       break;
     case Omega_ini_dcdm:
     case omega_ini_dcdm:
+    case f_dm_decay:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
       if (ba.has_dr == _TRUE_)
         rho_dr_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dr];
@@ -3853,10 +3918,25 @@ int input_try_unknown_parameters(double * unknown_parameter,
       break;
     case sigma8:
       output[i] = nl.sigma8[nl.index_pk_m]-pfzw->target_value[i];
+    // case T_cmb_dcdmsr:
+    //   output[i] = nl.sigma8[nl.index_pk_m]-pfzw->target_value[i];
       break;
     }
   }
 
+
+  rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
+  rho_dr_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dr];
+  double Omega_dcdm = (rho_dcdm_today)/(ba.H0*ba.H0);
+  double Omega_dr = (rho_dr_today)/(ba.H0*ba.H0);
+
+  // rho_g = M_dr_is_sr.get_background()['(.)rho_g']
+  // double rho_g_lcdm = ba.Omega0_g*(ba.H0*ba.H0);
+  // T_cmb_eff = T_cmb*(rho_g/rho_g_lcdm)**0.25
+  double T_cmb_dcdmsr = ba.T_cmb_dcdmsr;//ba.T_cmb*pow(ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_g]/rho_g_lcdm,0.25);
+  printf("Omega_dcdm = %.3e Omega_dr = %.3e\n",Omega_dcdm,Omega_dr);
+  printf("omega_dcdmdr = %.8e\n",(Omega_dcdm+Omega_dr)*ba.h*ba.h);
+  printf("T_cmb_dcdmsr = %.8e\n",T_cmb_dcdmsr);
 
   /** - Free structures */
   if (pfzw->required_computation_stage >= cs_spectra){
@@ -3958,6 +4038,7 @@ int input_get_guess(double *xguess,
       ba.H0 = ba.h *  1.e5 / _c_;
       break;
     case Omega_dcdmdr:
+    case Omega_dm_tot:
       Omega_M = ba.Omega0_cdm+ba.Omega0_idm_dr+ba.Omega0_dcdmdr+ba.Omega0_b;
       /* This formula is exact in a Matter + Lambda Universe, but only
          for Omega_dcdm, not the combined.
@@ -4015,6 +4096,7 @@ int input_get_guess(double *xguess,
       }
       break;
     case omega_ini_dcdm:
+    case f_dm_decay:
       Omega0_dcdmdr = 1./(ba.h*ba.h);
     case Omega_ini_dcdm:
       /** - This works since correspondence is
@@ -4156,10 +4238,12 @@ int input_auxillary_target_conditions(struct file_content * pfc,
   */
   switch (target_name){
   case Omega_dcdmdr:
+  case Omega_dm_tot:
   case omega_dcdmdr:
   case Omega_scf:
   case Omega_ini_dcdm:
   case omega_ini_dcdm:
+  case f_dm_decay:
     /* Check that Omega's or omega's are nonzero: */
     if (target_value == 0.)
       *aux_flag = _FALSE_;
