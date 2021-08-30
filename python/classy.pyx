@@ -1360,6 +1360,13 @@ cdef class Class:
         """
         return self.ba.T_cmb
 
+    def T_cmb_dcdmsr(self):
+        """
+        Return the CMB temperature
+        """
+        return self.ba.T_cmb_dcdmsr
+
+
     # redundent with a previous Omega_m() funciton,
     # but we leave it not to break compatibility
     def Omega0_m(self):

@@ -277,11 +277,11 @@ int input_init(
    */
 
   char * const target_namestrings[] = {"100*theta_s","Omega_dm_tot","Omega_dcdmdr","omega_dcdmdr",
-                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","f_dm_decay","sigma8"};
+                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","f_dm_decay","sigma8","T_cmb_dcdmsr"};
   char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm","Omega_ini_dcdm",
-                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s"};
+                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s","T_cmb"};
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
-                                        cs_background, cs_background, cs_background, cs_background, cs_nonlinear};
+                                        cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
 
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
 
@@ -369,7 +369,7 @@ int input_init(
       fzw.unknown_parameters_index[counter]=pfc->size+counter;
       // substitute the name of the target parameter with the name of the corresponding unknown parameter
       strcpy(fzw.fc.name[fzw.unknown_parameters_index[counter]],unknown_namestrings[index_target]);
-      //printf("%d, %d: %s\n",counter,index_target,target_namestrings[index_target]);
+      printf("%d, %d: %s %.3e\n",counter,index_target,target_namestrings[index_target],fzw.target_value[counter]);
     }
 
     if (unknown_parameters_size == 1){
@@ -1083,6 +1083,12 @@ int input_read_parameters(
     ppt->beta_idr = NULL;
   }
 
+  // /** - T_cmb_dcdmsr (DCDM) */
+  // class_call(parser_read_double(pfc,"T_cmb_dcdmsr",&param1,&flag1,errmsg),
+  //            errmsg,
+  //            errmsg);
+  // pba->T_cmb_dcdmsr = param1;
+
   /** - Omega_0_dcdmdr (DCDM) */
   class_call(parser_read_double(pfc,"Omega_dm_tot",&param1,&flag1,errmsg),
              errmsg,
@@ -1101,7 +1107,8 @@ int input_read_parameters(
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
     class_read_int("dr_is_sr",pba->dr_is_sr);
-
+  printf("pba->Omega0_dcdmdr = %.8e\n",pba->Omega0_dcdmdr);
+  printf("pba->Omega0_cdm = %.8e\n",pba->Omega0_cdm);
   }
   else{
 
@@ -1121,7 +1128,8 @@ int input_read_parameters(
   if (flag2 == _TRUE_)
     pba->Omega0_dcdmdr = param2/pba->h/pba->h;
 
-    // printf("pba->Omega0_dcdmdr = %.8e\n",pba->Omega0_dcdmdr);
+  printf("pba->Omega0_dcdmdr = %.8e\n",pba->Omega0_dcdmdr);
+  printf("pba->Omega0_cdm = %.8e\n",pba->Omega0_cdm);
   }
 
 
@@ -1173,6 +1181,8 @@ int input_read_parameters(
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
     class_read_int("dr_is_sr",pba->dr_is_sr);
+
+    printf("f_dm_decay = %.3e\n",pba->f_dm_decay);
 
   }
 
@@ -3885,13 +3895,22 @@ int input_try_unknown_parameters(double * unknown_parameter,
       output[i] = 100.*th.rs_rec/th.ra_rec-pfzw->target_value[i];
       break;
     case Omega_dcdmdr:
-    case Omega_dm_tot:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
       if (ba.has_dr == _TRUE_)
         rho_dr_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dr];
       else
         rho_dr_today = 0.;
       output[i] = (rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0)-pfzw->target_value[i];
+      break;
+    case T_cmb_dcdmsr:
+      output[i] = ba.T_cmb_dcdmsr - pfzw->target_value[i];
+    case Omega_dm_tot:
+      rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
+      if (ba.has_dr == _TRUE_)
+        rho_dr_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dr];
+      else
+        rho_dr_today = 0.;
+      output[i] = (rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0)-ba.f_dm_decay*pfzw->target_value[i];
       break;
     case omega_dcdmdr:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
@@ -4036,6 +4055,10 @@ int input_get_guess(double *xguess,
       /** - Update pb to reflect guess */
       ba.h = xguess[index_guess];
       ba.H0 = ba.h *  1.e5 / _c_;
+      break;
+    case T_cmb_dcdmsr:
+      xguess[index_guess] = 2.7;
+      dxdy[index_guess] = 1.;
       break;
     case Omega_dcdmdr:
     case Omega_dm_tot:
