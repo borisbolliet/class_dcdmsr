@@ -9,6 +9,7 @@
 #include "arrays.h"
 #include "dei_rkck.h"
 #include "parser.h"
+#include "gsl/gsl_sf_gamma.h"
 
 //The name for this macro can be at most 30 characters total
 #define _class_print_species_(name,type) \
@@ -54,7 +55,7 @@ struct background
   double T_cmb; /**< \f$ T_{cmb} \f$: current CMB temperature in Kelvins */
   double T_cmb_dcdmsr; /**< \f$ T_{cmb} \f$: current CMB temperature in Kelvins due to cdm decay into SR*/
 
-  double f_dm_decay; // f_dm_decay = omega_dcdm/omega_dm woth omega_dm = omega_dcdm + omega_cdm 
+  double f_dm_decay; // f_dm_decay = omega_dcdm/omega_dm woth omega_dm = omega_dcdm + omega_cdm
   double Omega0_b; /**< \f$ \Omega_{0 b} \f$: baryons */
 
   double Omega0_cdm; /**< \f$ \Omega_{0 cdm} \f$: cold dark matter */
