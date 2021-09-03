@@ -1941,14 +1941,19 @@ if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_
   pba->Omega0_r = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_Omega_r];
   pba->Omega0_de = 1. - (pba->Omega0_m + pba->Omega0_r + pba->Omega0_k);
 
-if (pba->background_verbose > 2) {
+if (pba->background_verbose > -2) {
     if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)){
       printf("    Decaying Cold Dark Matter details: (DCDM --> DR)\n");
       printf("     -> Omega0_dcdm = %.8e\n",pba->Omega0_dcdm);
       printf("     -> Omega0_dr = %.8e\n",pba->Omega0_dr);
-      printf("     -> Omega0_dr+Omega0_dcdm = %f, input value = %f\n",
-             pba->Omega0_dr+pba->Omega0_dcdm,pba->Omega0_dcdmdr);
-      printf("     -> Omega_ini_dcdm/Omega_b = %f\n",pba->Omega_ini_dcdm/pba->Omega0_b);
+      printf("     -> Omega0_dr+Omega0_dcdm = %.8e, input value pba->Omega0_dcdmdr = %.8e\n",
+             pba->Omega0_dr+pba->Omega0_dcdm,
+             pba->Omega0_dcdmdr);
+      printf("     -> Omega_ini_dcdm = %.8e\n",pba->Omega_ini_dcdm);
+      printf("     -> Omega_ini_dcdm/Omega_b = %.8e\n",pba->Omega_ini_dcdm/pba->Omega0_b);
+      printf("########################\n");
+      printf("  dr_is_sr = %d\n",pba->dr_is_sr );
+      printf("########################\n");
    if(pba->dr_is_sr == _TRUE_){
       printf("     treating dr as standard radiation.\n");
 
@@ -1961,18 +1966,22 @@ if (pba->background_verbose > 2) {
       printf("     -> Omega_ini_dcdm/Omega_0_g_lcdm = %f\n",pba->Omega_ini_dcdm/Omega_0_g_lcdm);
 
       double lambda_dcdm = pba->Gamma_dcdm/pba->H0/sqrt(pba->Omega0_m);
+      printf("     -> Gamma =  %f km/s/Mpc\n",pba->Gamma_dcdm/(1.e3 / _c_));
+      printf("     -> H0 =  %f km/s/Mpc\n",pba->H0/(1.e3 / _c_));
+
+      printf("     -> Lambda = (Gamma/H0/Omega_m**0.5) = %f\n",lambda_dcdm);
       double dT_cmb_dT_cmb_dcdmsr_approx_linearized = -1./4.*pba->Omega_ini_dcdm/Omega_0_g_lcdm
                                     *pow(2.*lambda_dcdm/3.,-2./3.)
                                     *(gsl_sf_gamma_inc(5./3., 0.)-gsl_sf_gamma_inc(5./3., 2.*lambda_dcdm/3.));
       double u_dcdm = -4.*dT_cmb_dT_cmb_dcdmsr_approx_linearized*pow(pba->T_cmb,4.);
       double T_cmb_dcdmsr_approx = pow(1.-4.*dT_cmb_dT_cmb_dcdmsr_approx_linearized,0.25)*pba->T_cmb;
       double dT_cmb_dT_cmb_dcdmsr_approx = pow(1.-u_dcdm/pow(pba->T_cmb_dcdmsr,4.),-3./4.);
-      printf("     -> Gamma =  %f km/s/Mpc\n",pba->Gamma_dcdm/(1.e3 / _c_));
-      printf("     -> Lambda = (Gamma/H0/Omega_m**0.5) = %f\n",lambda_dcdm);
-      printf("     -> T_cmb_dcdmsr = %.8e  K\n",pba->T_cmb_dcdmsr);
+
+      printf("     -> T_cmb (guess) = %.8e  K\n",pba->T_cmb);
+      printf("     -> T_cmb_dcdmsr (from guess) = %.8e  K\n",pba->T_cmb_dcdmsr);
       printf("     -> T_cmb_dcdmsr (approx.)= %.8e  K\n",T_cmb_dcdmsr_approx);
       printf("     -> dT_cmb_dT_cmb_dcdmsr (approx)= %f\n",dT_cmb_dT_cmb_dcdmsr_approx );
-
+      printf(" \n");
    }
     }
   }
