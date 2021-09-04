@@ -1119,7 +1119,7 @@ int fzero_Newton(int (*func)(double *x,
     for (i=1; i<=x_size; i++)
       errf += fabs(F0[i-1]); //Check function convergence.
     if (errf <= tolF){
-			printf("has converged\n");
+			// printf("has converged\n");
       has_converged = _TRUE_;
       break;
     }
@@ -1140,20 +1140,20 @@ int fzero_Newton(int (*func)(double *x,
 
       /**      printf("x = [%f, %f], delx = [%e, %e]\n",
                x_inout[0],x_inout[1],delx[0],delx[1]);*/
-			printf("start trying unknown params\n");
+			// printf("start trying unknown params\n");
       class_call(func(x_inout, x_size, param, Fdel, error_message),
                  error_message, error_message);
-			printf("end trying unknown params\n");
+			// printf("end trying unknown params\n");
       /**      printf("F = [%f, %f]\n",Fdel[0],Fdel[1]);*/
       for (j=1; j<=x_size; j++)
         Fjac[j][i] = (Fdel[j-1]-F0[j-1])/delx[i-1];
 
-			printf("1: x_inout old = %.8e\t",x_inout[i-1]);
+			// printf("1: x_inout old = %.8e\t",x_inout[i-1]);
       x_inout[i-1] -= delx[i-1];
-			printf("x_inout new = %.8e\t",x_inout[i-1]);
-			printf("\n");
+			// printf("x_inout new = %.8e\t",x_inout[i-1]);
+			// printf("\n");
     }
-		printf("\n\n");
+		// printf("\n\n");
     *fevals = *fevals + x_size;
 
     for (i=1; i<=x_size; i++)
@@ -1163,11 +1163,11 @@ int fzero_Newton(int (*func)(double *x,
     errx=0.0; //Check root convergence.
     for (i=1; i<=x_size; i++) { //Update solution.
       errx += fabs(p[i]);
-			printf("2: p[i] = %.8e x_inout old = %.8e\t",p[i],x_inout[i-1]);
+			// printf("2: p[i] = %.8e x_inout old = %.8e\t",p[i],x_inout[i-1]);
       x_inout[i-1] += p[i];
-			printf("x_inout new = %.8e\t",x_inout[i-1]);
+			// printf("x_inout new = %.8e\t",x_inout[i-1]);
     }
-		printf("\n");
+		// printf("\n");
     if (errx <= tolx){
       has_converged = _TRUE_;
       break;
