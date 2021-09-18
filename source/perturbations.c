@@ -5136,6 +5136,8 @@ int perturb_initial_conditions(struct precision * ppr,
       rho_m += ppw->pvecback[pba->index_bg_rho_dcdm];
     }
 
+    // class_dcdm_sr modifications
+    // add extra photons into total densities
     if ((pba->has_dr == _TRUE_) && (pba->dr_is_sr == _FALSE_)) {
       rho_r += ppw->pvecback[pba->index_bg_rho_dr];
       rho_nu += ppw->pvecback[pba->index_bg_rho_dr];
@@ -6669,7 +6671,8 @@ int perturb_total_stress_energy(
     }
 
     /* ultra-relativistic decay radiation */
-
+    // class_dcdm_sr modifications
+    // add extra photons to total stress-energy tensor
     if ((pba->has_dr == _TRUE_) && (pba->dr_is_sr == _FALSE_)) {
       /* We have delta_rho_dr = rho_dr * F0_dr / f, where F follows the
          convention in astro-ph/9907388 and f is defined as
@@ -8628,6 +8631,8 @@ int perturb_derivs(double tau,
 
       dy[pv->index_pt_delta_g] = -4./3.*(theta_g+metric_continuity);
 
+      // class_dcdm_sr modifications
+      // here we add contribution  of extra photons to photons overdensity
       if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
       dy[pv->index_pt_delta_g] += fprime_dr_over_f_dr*(y[pv->index_pt_delta_dcdm]-delta_g+metric_euler/k2);
 
@@ -8685,7 +8690,8 @@ int perturb_derivs(double tau,
           + metric_euler
           + pvecthermo[pth->index_th_dkappa]*(theta_b-theta_g);
 
-
+          // class_dcdm_sr modifications
+          // here we add extra photons contributions to photon velocity perturbation
           if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
           dy[pv->index_pt_theta_g] += -3./4.*fprime_dr_over_f_dr*(4./3.*theta_g-y[pv->index_pt_theta_dcdm]);
 
@@ -8695,6 +8701,8 @@ int perturb_derivs(double tau,
                -3./5.*k*s_l[3]/s_l[2]*y[pv->index_pt_l3_g]
                -pvecthermo[pth->index_th_dkappa]*(2.*y[pv->index_pt_shear_g]-4./5./s_l[2]*P0));
 
+          // class_dcdm_sr modifications
+          // here we add extra photons contributions to photon shear perturbation
        if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
        dy[pv->index_pt_shear_g] += -fprime_dr_over_f_dr*y[pv->index_pt_shear_g];
 
@@ -8705,6 +8713,9 @@ int perturb_derivs(double tau,
           (l*s_l[l]*2.*s_l[2]*y[pv->index_pt_shear_g]-(l+1.)*s_l[l+1]*y[pv->index_pt_l3_g+1])
           - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_l3_g];
 
+
+      // class_dcdm_sr modifications
+      // here we add extra photons contributions to Boltzmann function with l=3 perturbations
        if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
         dy[pv->index_pt_l3_g] += -fprime_dr_over_f_dr*y[pv->index_pt_l3_g];
 
@@ -8715,6 +8726,8 @@ int perturb_derivs(double tau,
             (l*s_l[l]*y[pv->index_pt_delta_g+l-1]-(l+1)*s_l[l+1]*y[pv->index_pt_delta_g+l+1])
             - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_delta_g+l];
 
+      // class_dcdm_sr modifications
+      // here we add extra photons contributions to Boltzmann function with l>3 perturbations
        if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
         dy[pv->index_pt_delta_g+l] += -fprime_dr_over_f_dr*y[pv->index_pt_delta_g+l];
 
@@ -8726,6 +8739,8 @@ int perturb_derivs(double tau,
           k*(s_l[l]*y[pv->index_pt_delta_g+l-1]-(1.+l)*cotKgen*y[pv->index_pt_delta_g+l])
           - pvecthermo[pth->index_th_dkappa]*y[pv->index_pt_delta_g+l];
 
+      // class_dcdm_sr modifications
+      // here we add extra photons contributions to Boltzmann function with l=lmax perturbations
        if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_))
         dy[pv->index_pt_delta_g+l] += -fprime_dr_over_f_dr*y[pv->index_pt_delta_g+l];
 

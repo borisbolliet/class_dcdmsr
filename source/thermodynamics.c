@@ -1670,6 +1670,15 @@ int thermodynamics_helium_from_bbn(
 
   fclose(fA);
 
+  // class_dcdm_sr modifications
+  // as in Ivanov+
+  // (do not assume T0=2.7255K)
+  int indexob = 0;
+    for (indexob=0; indexob<num_omegab; indexob++){
+    	omegab[indexob] = omegab[indexob]*pow(pba->T_cmb/2.7255,3.);
+      // omegab[indexob] = omegab[indexob]*pow(pba->T0_star/2.7255,3.);
+    }
+
   /** - spline in one dimension (along deltaN) */
   class_call(array_spline_table_lines(deltaN,
                                       num_deltaN,

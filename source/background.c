@@ -338,6 +338,8 @@ int background_functions(
     dp_dloga += -(4./3.) * pvecback[pba->index_bg_rho_dr];
     rho_r += pvecback[pba->index_bg_rho_dr];
 
+// class_dcdm_sr modifications
+// add the extra photos to the radiation density
     if (pba->dr_is_sr ==  1){
       pvecback[pba->index_bg_rho_g] += pvecback[pba->index_bg_rho_dr];
     }
@@ -1907,10 +1909,13 @@ int background_solve(
   }
 
 
+// class_dcdm_sr modifications
 if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_)){
       // rho_g = M_dr_is_sr.get_background()['(.)rho_g']
       double rho_g_lcdm = pba->Omega0_g*(pba->H0*pba->H0);
       // T_cmb_eff = T_cmb*(rho_g/rho_g_lcdm)**0.25
+      // this is the temperature of the photons including the ones
+      // produced by decays
       double T_cmb_dcdmsr = pba->T_cmb*pow(pvecback[pba->index_bg_rho_g]/rho_g_lcdm,0.25);
       pba->T_cmb_dcdmsr = T_cmb_dcdmsr;
 
@@ -1951,6 +1956,7 @@ if (pba->background_verbose > 2) {
              pba->Omega0_dcdmdr);
       printf("     -> Omega_ini_dcdm = %.8e\n",pba->Omega_ini_dcdm);
       printf("     -> Omega_ini_dcdm/Omega_b = %.8e\n",pba->Omega_ini_dcdm/pba->Omega0_b);
+// class_dcdm_sr modifications
       printf("########################\n");
       printf("  dr_is_sr = %d\n",pba->dr_is_sr );
       printf("########################\n");
