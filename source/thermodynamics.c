@@ -1676,7 +1676,6 @@ int thermodynamics_helium_from_bbn(
   int indexob = 0;
     for (indexob=0; indexob<num_omegab; indexob++){
     	omegab[indexob] = omegab[indexob]*pow(pba->T_cmb/2.7255,3.);
-      // omegab[indexob] = omegab[indexob]*pow(pba->T0_star/2.7255,3.);
     }
 
   /** - spline in one dimension (along deltaN) */

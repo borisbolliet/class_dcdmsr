@@ -6672,7 +6672,8 @@ int perturb_total_stress_energy(
 
     /* ultra-relativistic decay radiation */
     // class_dcdm_sr modifications
-    // add extra photons to total stress-energy tensor
+    // only add DR to total SET if dark radiation,
+    // in the dcdm -> sr case the extra photons are already in accounted phor in the standard photons perturbations.
     if ((pba->has_dr == _TRUE_) && (pba->dr_is_sr == _FALSE_)) {
       /* We have delta_rho_dr = rho_dr * F0_dr / f, where F follows the
          convention in astro-ph/9907388 and f is defined as
