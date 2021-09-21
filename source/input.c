@@ -277,11 +277,11 @@ int input_init(
    */
 
   char * const target_namestrings[] = {"100*theta_s","Omega_dm_tot","Omega_dcdmdr","omega_dcdmdr",
-                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","f_dm_decay","sigma8","T_cmb_dcdmsr"};
+                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","omega_ini_dcdm_hat","f_dm_decay","sigma8","T_cmb_dcdmsr"};
   char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm","Omega_ini_dcdm",
-                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s","T_cmb"};
+                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s","T_cmb"};
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
-                                        cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
+                                        cs_background, cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
 
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
 
@@ -757,6 +757,9 @@ int input_read_parameters(
              errmsg,
              "In input file, you can only enter one of T_cmb, Omega_g or omega_g, choose one");
 
+
+
+
   if (class_none_of_three(flag1,flag2,flag3)) {
     pba->Omega0_g = (4.*sigma_B/_c_*pow(pba->T_cmb,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
   }
@@ -783,6 +786,10 @@ int input_read_parameters(
 
   Omega_tot = pba->Omega0_g;
 
+
+  // class_T0 modifications:
+  double T_cmb_firas = 2.7255;
+
   /** - Omega_0_b (baryons) */
   class_call(parser_read_double(pfc,"Omega_b",&param1,&flag1,errmsg),
              errmsg,
@@ -797,6 +804,13 @@ int input_read_parameters(
     pba->Omega0_b = param1;
   if (flag2 == _TRUE_)
     pba->Omega0_b = param2/pba->h/pba->h;
+
+  // class_T0 modifications:
+  class_call(parser_read_double(pfc,"omega_b_hat",&param2,&flag2,errmsg),
+             errmsg,
+             errmsg);
+  if (flag2 == _TRUE_)
+      pba->Omega0_b = param2/pba->h/pba->h*pow(pba->T_cmb/T_cmb_firas,3.);
 
   Omega_tot += pba->Omega0_b;
 
@@ -916,6 +930,14 @@ int input_read_parameters(
     pba->Omega0_cdm = param1;
   if (flag2 == _TRUE_)
     pba->Omega0_cdm = param2/pba->h/pba->h;
+
+    // class_T0 modifications:
+    class_call(parser_read_double(pfc,"omega_cdm_hat",&param2,&flag2,errmsg),
+               errmsg,
+               errmsg);
+    if (flag2 == _TRUE_)
+        pba->Omega0_cdm = param2/pba->h/pba->h*pow(pba->T_cmb/T_cmb_firas,3.);
+
 
   if ((ppt->gauge == synchronous) && (pba->Omega0_cdm==0)) pba->Omega0_cdm = ppr->Omega0_cdm_min_synchronous;
 
@@ -1174,6 +1196,15 @@ int input_read_parameters(
       pba->Omega_ini_dcdm = param1;
     if (flag2 == _TRUE_)
       pba->Omega_ini_dcdm = param2/pba->h/pba->h;
+
+  // class_T0 modifications:
+  class_call(parser_read_double(pfc,"omega_ini_dcdm_hat",&param2,&flag2,errmsg),
+             errmsg,
+             errmsg);
+  if (flag2 == _TRUE_)
+      pba->Omega_ini_dcdm = param2/pba->h/pba->h*pow(pba->T_cmb/T_cmb_firas,3.);
+
+
     // }
 
     /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
@@ -2131,12 +2162,24 @@ Omega_tot += pba->Omega0_cdm;
       else if (flag2 == _TRUE_)
         ppm->A_s = exp(param2)*1.e-10;
 
+
+
       if (ppt->has_ad == _TRUE_) {
 
         class_read_double("n_s",ppm->n_s);
         class_read_double("alpha_s",ppm->alpha_s);
 
       }
+
+    // class_T0 modifications:
+    class_call(parser_read_double(pfc,"ln10^{10}A_s_hat",&param2,&flag2,errmsg),
+               errmsg,
+               errmsg);
+    if (flag2 == _TRUE_)
+        ppm->A_s = exp(param2)*1.e-10*pow(pba->T_cmb/T_cmb_firas,1.-ppm->n_s);
+
+
+
 
       if (ppt->has_bi == _TRUE_) {
 
@@ -3941,6 +3984,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       break;
     case Omega_ini_dcdm:
     case omega_ini_dcdm:
+    case omega_ini_dcdm_hat:
     case f_dm_decay:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
       if (ba.has_dr == _TRUE_)
@@ -4191,6 +4235,7 @@ int input_get_guess(double *xguess,
       }
       break;
     case omega_ini_dcdm:
+    case omega_ini_dcdm_hat:
     case f_dm_decay:
       Omega0_dcdmdr = 1./(ba.h*ba.h);
     case Omega_ini_dcdm:
@@ -4340,6 +4385,7 @@ int input_auxillary_target_conditions(struct file_content * pfc,
   case Omega_scf:
   case Omega_ini_dcdm:
   case omega_ini_dcdm:
+  case omega_ini_dcdm_hat:
   case f_dm_decay:
     /* Check that Omega's or omega's are nonzero: */
     if (target_value == 0.)

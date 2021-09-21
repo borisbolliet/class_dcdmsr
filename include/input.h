@@ -135,7 +135,7 @@
  * temporary parameters for background fzero function
  */
 
-enum target_names {theta_s, Omega_dm_tot, Omega_dcdmdr, omega_dcdmdr, Omega_scf, Omega_ini_dcdm, omega_ini_dcdm, f_dm_decay, sigma8, T_cmb_dcdmsr};
+enum target_names {theta_s, Omega_dm_tot, Omega_dcdmdr, omega_dcdmdr, Omega_scf, Omega_ini_dcdm, omega_ini_dcdm, omega_ini_dcdm_hat, f_dm_decay, sigma8, T_cmb_dcdmsr};
 enum computation_stage {cs_background, cs_thermodynamics, cs_perturbations,
                         cs_primordial, cs_nonlinear, cs_transfer, cs_spectra};
 #define _NUM_TARGETS_ 10 //Keep this number as number of target_names
