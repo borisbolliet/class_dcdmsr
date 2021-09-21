@@ -1109,6 +1109,38 @@ cdef class Class:
         self.compute(["thermodynamics"])
         return self.th.z_reio
 
+    def modified_T_cmb(self, z):
+        """
+        angular_distance(z)
+
+        Return the angular diameter distance (exactly, the quantity defined by Class
+        as index_bg_ang_distance in the background module)
+
+        Parameters
+        ----------
+        z : float
+                Desired redshift
+        """
+        cdef double tau
+        cdef int last_index #junk
+        cdef double * pvecback
+
+        pvecback = <double*> calloc(self.ba.bg_size,sizeof(double))
+
+        if background_tau_of_z(&self.ba,z,&tau)==_FAILURE_:
+            raise CosmoSevereError(self.ba.error_message)
+
+        if background_at_tau(&self.ba,tau,self.ba.long_info,self.ba.inter_normal,&last_index,pvecback)==_FAILURE_:
+            raise CosmoSevereError(self.ba.error_message)
+
+        modified_T_cmb = pvecback[self.ba.index_bg_modified_T_cmb]
+
+        free(pvecback)
+
+        return modified_T_cmb
+
+
+
     def angular_distance(self, z):
         """
         angular_distance(z)

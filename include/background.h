@@ -184,7 +184,7 @@ struct background
   int index_bg_H_prime;       /**< its derivative w.r.t. conformal time */
 
   /* end of vector in short format, now quantities in normal format */
-
+  int index_bg_modified_T_cmb;         /**< photon density */
   int index_bg_rho_g;         /**< photon density */
   int index_bg_rho_b;         /**< baryon density */
   int index_bg_rho_cdm;       /**< cdm density */

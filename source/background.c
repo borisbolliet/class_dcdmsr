@@ -341,7 +341,10 @@ int background_functions(
 // class_dcdm_sr modifications
 // add the extra photos to the radiation density
     if (pba->dr_is_sr ==  1){
+      double rho_g_lcdm = pvecback[pba->index_bg_rho_g];
       pvecback[pba->index_bg_rho_g] += pvecback[pba->index_bg_rho_dr];
+      pvecback[pba->index_bg_modified_T_cmb] = pba->T_cmb*pow(pvecback[pba->index_bg_rho_g]/rho_g_lcdm,0.25);
+
     }
   }
 
@@ -940,6 +943,7 @@ int background_indices(
   /* - end of indices in the short vector of background values */
   pba->bg_size_short = index_bg;
 
+  class_define_index(pba->index_bg_modified_T_cmb,_TRUE_,index_bg,1);
   /* - index for rho_g (photon density) */
   class_define_index(pba->index_bg_rho_g,_TRUE_,index_bg,1);
 

@@ -50,6 +50,7 @@ cdef extern from "class.h":
         ErrorMsg error_message
         int bg_size
         int index_bg_ang_distance
+        int index_bg_modified_T_cmb
         int index_bg_lum_distance
         int index_bg_conf_distance
         int index_bg_a
