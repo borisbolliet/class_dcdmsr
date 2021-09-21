@@ -2172,7 +2172,7 @@ Omega_tot += pba->Omega0_cdm;
       }
 
     // class_T0 modifications:
-    class_call(parser_read_double(pfc,"ln10^{10}A_s_hat",&param2,&flag2,errmsg),
+    class_call(parser_read_double(pfc,"logA_hat",&param2,&flag2,errmsg),
                errmsg,
                errmsg);
     if (flag2 == _TRUE_)
