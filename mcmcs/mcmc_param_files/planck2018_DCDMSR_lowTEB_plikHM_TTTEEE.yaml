@@ -2,8 +2,8 @@ likelihood:
   planck_2018_lowl.TT:
   planck_2018_lowl.EE:
   planck_2018_highl_plik.TTTEEE:
-# modules: /mnt/home/chill/cobaya_analyses/modules
-packages_path: /Users/boris/Work/CLASS-SZ/SO-SZ/cobaya_packages
+modules: /home/chill/cobaya_analyses/modules
+#packages_path: /Users/boris/Work/CLASS-SZ/SO-SZ/cobaya_packages
 params:
   T_cmb:
     prior:
@@ -14,7 +14,7 @@ params:
       loc: 2.7255
       scale: 0.01
     proposal: 0.01
-    latex: T_\mathrm{cmb}
+    latex: \tilde{T}_\mathrm{cmb}
   omega_ini_dcdm_hat:
     prior:
       min: 1e-5
@@ -34,7 +34,7 @@ params:
       loc: 200000.
       scale: 1000.
     proposal: 1000.
-    latex: \hat{Omega}_\mathrm{ini,dcdm} h^2
+    latex: \Gamma_\mathrm{dcdm}
   logA_hat:
     prior:
       min: 1.61
@@ -45,10 +45,10 @@ params:
       scale: 0.001
     proposal: 0.001
     latex: \log(10^{10}\hat{A}_\mathrm{s})
-  #   drop: true
-  # A_s:
-  #   value: 'lambda logA_hat,: 1e-10*np.exp(logA)'
-  #   latex: A_\mathrm{s}
+    #drop: true
+  A_s_hat:
+    derived: 'lambda logA_hat: 1e-10*np.exp(logA_hat)'
+    latex: \hat{A}_\mathrm{s}
   n_s:
     prior:
       min: 0.8
@@ -95,6 +95,12 @@ params:
       scale: 0.001
     proposal: 0.0005
     latex: \hat{Omega}_\mathrm{c} h^2
+  omega_b:
+    derived: 'lambda omega_b_hat, T_cmb: omega_b_hat*(T_cmb/2.7255)**3'
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    derived: 'lambda omega_cdm_hat, T_cmb: omega_cdm_hat*(T_cmb/2.7255)**3'
+    latex: \Omega_\mathrm{c} h^2
   Omega_m:
     latex: \Omega_\mathrm{m}
   omegamh2:
@@ -127,6 +133,9 @@ params:
   s8omegamp5:
     derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.5'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  s8omegamp5_norm:
+    derived: 'lambda sigma8, Omega_m: sigma8*(Omega_m/0.3)**0.5'
+    latex: \sigma_8 (\Omega_\mathrm{m}/0.3)^{0.5}
   s8omegamp25:
     derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.25'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
@@ -140,6 +149,8 @@ params:
     latex: '{\rm{Age}}/\mathrm{Gyr}'
   rs_drag:
     latex: r_\mathrm{drag}
+  T_cmb_dcdmsr:
+    latex: T_\mathrm{cmb}
   chi2__CMB:
     derived: 'lambda chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE:
       sum([chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE])'
@@ -152,16 +163,18 @@ sampler:
     proposal_scale: 1.9
     burn_in: 0
     max_tries: 5000
-    check_every: 50
+    check_every: 40
+    output_every: 30
     learn_proposal: true
+    learn_proposal_Rminus1_max: 5.
 theory:
   classy:
-    path: /Users/boris/Work/CLASS-SZ/SO-SZ/class_T0
     extra_args:
       non linear: halofit
       N_ncdm: 1
       N_ur: 2.0328
       P_k_max_h/Mpc: 20.
+      z_pk: 1.
       dr_is_sr: 1
 
-output: /Users/boris/Work/CLASS-SZ/SO-SZ/class_T0/mcmcs/mcmc_chains/CLASS2p8_planck2018_baseLCDM_lowTT_lowEE_plikHM_TTTEEE
+output: /mnt/sdceph/users/chill/chains/CLASS2p8_planck2018_DCDMSR_lowTEB_plikHM_TTTEEE
