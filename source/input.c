@@ -4075,6 +4075,11 @@ int input_get_guess(double *xguess,
   double Omega_M, a_decay, gamma, Omega0_dcdmdr=1.0;
   int index_guess;
 
+  // class dcdmsr variables:
+  double sigma_B, T_cmb_lcdm, Omega0_g_lcdm, Omega_ini_dcdm_guess;
+  int counter;
+  double  h_guess, H0_guess, lambda_dcdm, dT_cmb_dT_cmb_dcdmsr_approx_linearized, u_dcdm, T_cmb_approx, dT_cmb_dT_cmb_dcdmsr_approx;
+
   /* Cheat to read only known parameters: */
   pfzw->fc.size -= pfzw->target_size;
 
@@ -4124,14 +4129,14 @@ int input_get_guess(double *xguess,
       ba.H0 = ba.h *  1.e5 / _c_;
       break;
     case T_cmb_dcdmsr:
-      double sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
-      double T_cmb_lcdm = 2.7;
-      double Omega0_g_lcdm = (4.*sigma_B/_c_*pow(T_cmb_lcdm,4.)) / (3.*_c_*_c_*1.e10*ba.h*ba.h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+      sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
+      T_cmb_lcdm = 2.7;
+      Omega0_g_lcdm = (4.*sigma_B/_c_*pow(T_cmb_lcdm,4.)) / (3.*_c_*_c_*1.e10*ba.h*ba.h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
       Omega_M = ba.Omega0_cdm+ba.Omega0_b;
 
       // case input Omega_ini_dcdm:
-      double Omega_ini_dcdm_guess;
-      int counter;
+      // Omega_ini_dcdm_guess;
+      // int counter;
       for (counter = 0; counter < 10; counter++){
       if (pfzw->target_name[counter] == 5) break;
       }
@@ -4147,20 +4152,20 @@ int input_get_guess(double *xguess,
 
 
 
-      double h_guess;
+      // h_guess;
       for (counter = 0; counter < 10; counter++){
       if (pfzw->target_name[counter] == 0) break;
       }
       h_guess = xguess[counter];
-      double H0_guess = h_guess*1.e5 / _c_;
-      double lambda_dcdm = ba.Gamma_dcdm/H0_guess/sqrt(Omega_M);
-      double dT_cmb_dT_cmb_dcdmsr_approx_linearized = -1./4.*Omega_ini_dcdm_guess/Omega0_g_lcdm
+      H0_guess = h_guess*1.e5 / _c_;
+      lambda_dcdm = ba.Gamma_dcdm/H0_guess/sqrt(Omega_M);
+      dT_cmb_dT_cmb_dcdmsr_approx_linearized = -1./4.*Omega_ini_dcdm_guess/Omega0_g_lcdm
                                     *pow(2.*lambda_dcdm/3.,-2./3.)
                                     *(gsl_sf_gamma_inc(5./3., 0.)-gsl_sf_gamma_inc(5./3., 2.*lambda_dcdm/3.));
-      double u_dcdm = -4.*dT_cmb_dT_cmb_dcdmsr_approx_linearized*pow(T_cmb_lcdm,4.);
+      u_dcdm = -4.*dT_cmb_dT_cmb_dcdmsr_approx_linearized*pow(T_cmb_lcdm,4.);
 
-      double T_cmb_approx = pfzw->target_value[index_guess]*pow(1.-u_dcdm/pow(pfzw->target_value[index_guess],4.),0.25);
-      double dT_cmb_dT_cmb_dcdmsr_approx = pow(1.-u_dcdm/pow(pfzw->target_value[index_guess],4.),-3./4.);
+      T_cmb_approx = pfzw->target_value[index_guess]*pow(1.-u_dcdm/pow(pfzw->target_value[index_guess],4.),0.25);
+      dT_cmb_dT_cmb_dcdmsr_approx = pow(1.-u_dcdm/pow(pfzw->target_value[index_guess],4.),-3./4.);
 
       // printf("     -> T_cmb_dcdmsr (target) = %.8e  K\n",pfzw->target_value[index_guess]);
       // printf("     -> T_cmb (approx.) (guess) = %.8e  K\n",T_cmb_approx);
