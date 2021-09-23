@@ -1207,21 +1207,23 @@ int input_read_parameters(
 
     // }
 
-    /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
+
+
+    // printf("f_dm_decay = %.3e\n",pba->f_dm_decay);
+
+  }
+
+      /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
     class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
     /* Convert to Mpc */
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
     class_read_int("dr_is_sr",pba->dr_is_sr);
 
-    // printf("f_dm_decay = %.3e\n",pba->f_dm_decay);
-
-  }
-
-  /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
-  class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
-  /* Convert to Mpc */
-  pba->Gamma_dcdm *= (1.e3 / _c_);
+  // /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
+  // class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
+  // /* Convert to Mpc */
+  // pba->Gamma_dcdm *= (1.e3 / _c_);
 // printf("T_cmb = %.8e\n",pba->T_cmb);
 // printf("Gamma_dcdm = %.3e\n",pba->Gamma_dcdm);
 // printf("Omega_ini_dcdm = %.8e\n",pba->Omega_ini_dcdm);
