@@ -283,6 +283,13 @@ int input_init(
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
                                         cs_background, cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
 
+  // char * const target_namestrings[] = {"100*theta_s","Omega_dm_tot","Omega_dcdmdr","omega_dcdmdr",
+  //                                      "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","f_dm_decay","sigma8","T_cmb_dcdmsr"};
+  // char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm","Omega_ini_dcdm",
+  //                                       "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s","T_cmb"};
+  // enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
+  //                                       cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
+
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
 
   class_read_int("input_verbose",input_verbose);
@@ -931,7 +938,7 @@ int input_read_parameters(
   if (flag2 == _TRUE_)
     pba->Omega0_cdm = param2/pba->h/pba->h;
 
-    // class_T0 modifications:
+    // // class_T0 modifications:
     class_call(parser_read_double(pfc,"omega_cdm_hat",&param2,&flag2,errmsg),
                errmsg,
                errmsg);
@@ -1197,7 +1204,7 @@ int input_read_parameters(
     if (flag2 == _TRUE_)
       pba->Omega_ini_dcdm = param2/pba->h/pba->h;
 
-  // class_T0 modifications:
+  // // class_T0 modifications:
   class_call(parser_read_double(pfc,"omega_ini_dcdm_hat",&param2,&flag2,errmsg),
              errmsg,
              errmsg);
@@ -2173,7 +2180,7 @@ Omega_tot += pba->Omega0_cdm;
 
       }
 
-    // class_T0 modifications:
+    // // class_T0 modifications:
     class_call(parser_read_double(pfc,"logA_hat",&param2,&flag2,errmsg),
                errmsg,
                errmsg);

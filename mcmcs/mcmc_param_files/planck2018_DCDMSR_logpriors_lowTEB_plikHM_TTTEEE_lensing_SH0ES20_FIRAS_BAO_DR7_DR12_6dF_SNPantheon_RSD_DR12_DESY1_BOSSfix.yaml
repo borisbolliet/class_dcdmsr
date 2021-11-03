@@ -1,0 +1,214 @@
+likelihood:
+  planck_2018_lowl.TT:
+  planck_2018_lowl.EE:
+  planck_2018_highl_plik.TTTEEE:
+  planck_2018_lensing.clik:
+  bao.sixdf_2011_bao:
+  bao.sdss_dr7_mgs:
+  # bao.sdss_dr12_consensus_final:
+  sn.pantheon:
+  # H0.riess202012:
+  des_y1.joint:
+  FIRAS: 'lambda _theory={"T_cmb_dcdmsr": None}: -0.5*((2.72548-_theory.get_param("T_cmb_dcdmsr"))**2.0)/(0.00057**2.0)'
+# modules: /home/chill/cobaya_analyses/modules
+packages_path: /Users/boris/Work/CLASS-SZ/SO-SZ/cobaya_packages
+params:
+  T_cmb:
+    prior:
+      min: 2.3
+      max: 3.5 #3.
+    ref:
+      dist: norm
+      loc: 2.7 #2.7255
+      scale: 0.001 #0.01
+    proposal: 0.001 #0.01
+    latex: \tilde{T}_\mathrm{cmb}
+  log10_omega_ini_dcdm_hat:
+    prior:
+      min: -5.
+      max: 0.
+    ref:
+      dist: norm
+      loc: -3.
+      scale: 0.2
+    proposal: 0.2
+    latex: \log_{10}(\hat{\Omega}_\mathrm{ini,dcdm} h^2)
+    drop: true
+  omega_ini_dcdm_hat:
+    value: 'lambda log10_omega_ini_dcdm_hat: 10.**log10_omega_ini_dcdm_hat'
+    #prior:
+    #  min: 1e-5
+    #  max: 1.
+    #ref:
+    #  dist: norm
+    #  loc: 0.001
+    #  scale: 0.0003
+    #proposal: 0.0002
+    latex: \hat{\Omega}_\mathrm{ini,dcdm} h^2
+  log10_Gamma_dcdm:
+    prior:
+      min: 2. #3.
+      max: 6.
+    ref:
+      dist: norm
+      loc: 4.5 #5.3
+      scale: 0.01
+    proposal: 0.01
+    latex: \log_{10}(\Gamma_\mathrm{dcdm})
+    drop: true
+  Gamma_dcdm:
+    value: 'lambda log10_Gamma_dcdm: 10.**log10_Gamma_dcdm'
+    #prior:
+    #  min: 1000.
+    #  max: 1000000.
+    #ref:
+    #  dist: norm
+    #  loc: 200000.
+    #  scale: 1000.
+    #proposal: 1000.
+    latex: \Gamma_\mathrm{dcdm}
+  logA_hat:
+    prior:
+      min: 1.61
+      max: 3.91
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.001
+    latex: \log(10^{10}\hat{A}_\mathrm{s})
+    #drop: true
+  A_s_hat:
+    derived: 'lambda logA_hat: 1e-10*np.exp(logA_hat)'
+    latex: \hat{A}_\mathrm{s}
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.004
+    proposal: 0.002
+    latex: n_\mathrm{s}
+  theta_s_1e2:
+    prior:
+      min: 0.5
+      max: 10
+    ref:
+      dist: norm
+      loc: 1.0416
+      scale: 0.0004
+    proposal: 0.0002
+    latex: 100\theta_\mathrm{s}
+    drop: true
+  100*theta_s:
+    value: 'lambda theta_s_1e2: theta_s_1e2'
+    derived: false
+  H0:
+    latex: H_0
+  omega_b_hat:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.0001
+    proposal: 0.0001
+    latex: \hat{Omega}_\mathrm{b} h^2
+  omega_cdm_hat:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.001
+    proposal: 0.0005
+    latex: \hat{Omega}_\mathrm{c} h^2
+  omega_b:
+    derived: 'lambda omega_b_hat, T_cmb: omega_b_hat*(T_cmb/2.7255)**3'
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    derived: 'lambda omega_cdm_hat, T_cmb: omega_cdm_hat*(T_cmb/2.7255)**3'
+    latex: \Omega_\mathrm{c} h^2
+  Omega_m:
+    latex: \Omega_\mathrm{m}
+  omegamh2:
+    derived: 'lambda Omega_m, H0: Omega_m*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  m_ncdm:
+    value: 0.06
+    renames: mnu
+  Omega_Lambda:
+    latex: \Omega_\Lambda
+  YHe:
+    latex: Y_\mathrm{P}
+  tau_reio:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.006
+    proposal: 0.003
+    latex: \tau_\mathrm{reio}
+  z_reio:
+    latex: z_\mathrm{re}
+  sigma8:
+    latex: \sigma_8
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  s8omegamp5_norm:
+    derived: 'lambda sigma8, Omega_m: sigma8*(Omega_m/0.3)**0.5'
+    latex: \sigma_8 (\Omega_\mathrm{m}/0.3)^{0.5}
+  s8omegamp25:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  A:
+    derived: 'lambda A_s: 1e9*A_s'
+    latex: 10^9 A_\mathrm{s}
+  logA:
+    derived: 'lambda A_s: np.log(10.**10. * A_s)'
+    latex: \log(10^{10} A_\mathrm{s})
+  clamp:
+    derived: 'lambda A_s, tau_reio: 1e9*A_s*np.exp(-2*tau_reio)'
+    latex: 10^9 A_\mathrm{s} e^{-2\tau}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rs_drag:
+    latex: r_\mathrm{drag}
+  T_cmb_dcdmsr:
+    latex: T_\mathrm{cmb}
+  chi2__CMB:
+    derived: 'lambda chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE:
+      sum([chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE])'
+    latex: \chi^2_\mathrm{CMB}
+sampler:
+  mcmc:
+    # covmat: /mnt/sdceph/users/chill/chains/CLASS2p8_planck2018_DCDMSR_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF.covmat
+    Rminus1_stop: 0.03
+    drag: true
+    proposal_scale: 1.9
+    burn_in: 0
+    max_tries: 5000
+    check_every: 50
+    output_every: 40
+    learn_proposal: true
+    learn_proposal_Rminus1_max: 100.
+theory:
+  classy:
+    extra_args:
+      non linear: halofit
+      N_ncdm: 1
+      N_ur: 2.0328
+      P_k_max_h/Mpc: 30.
+      dr_is_sr: 1
+
+output: /Users/boris/Work/CLASS-SZ/SO-SZ/class_T0/mcmcs/mcmc_chains/CLASS2p8_planck2018_DCDMSR_logpriors_lowTEB_plikHM_TTTEEE_lensing_SH0ES20_FIRAS_BAO_DR7_DR12_6dF_SNPantheon_RSD_DR12_DESY1_BOSSfix
