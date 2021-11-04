@@ -1949,7 +1949,9 @@ if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_
   pba->Omega0_m = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_Omega_m];
   pba->Omega0_r = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_Omega_r];
   pba->Omega0_de = 1. - (pba->Omega0_m + pba->Omega0_r + pba->Omega0_k);
-
+  // printf("     -> Omega0_dr+Omega0_dcdm = %.8e, input value pba->Omega0_dcdmdr = %.8e\n",
+  //        pba->Omega0_dr+pba->Omega0_dcdm,
+  //        pba->Omega0_dcdmdr);
 if (pba->background_verbose > 2) {
     if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)){
       printf("    Decaying Cold Dark Matter details: (DCDM --> DR)\n");

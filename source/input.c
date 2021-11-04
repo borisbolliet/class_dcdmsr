@@ -306,6 +306,7 @@ int input_init(
                                   errmsg),
                errmsg,
                errmsg);
+    // printf("%s %d\n",target_namestrings[index_target],index_target);
     if (flag1 == _TRUE_){
       /** - --> input_auxillary_target_conditions() takes care of the case where for
           instance Omega_dcdmdr is set to 0.0.
@@ -317,7 +318,7 @@ int input_init(
                                                    errmsg),
                  errmsg, errmsg);
       if (aux_flag == _TRUE_){
-        //printf("Found target: %s\n",target_namestrings[index_target]);
+        // printf("Found target: %s %d\n",target_namestrings[index_target],target_indices[unknown_parameters_size]);
         target_indices[unknown_parameters_size] = index_target;
         fzw.required_computation_stage = MAX(fzw.required_computation_stage,target_cs[index_target]);
         unknown_parameters_size++;
@@ -359,6 +360,7 @@ int input_init(
                 errmsg);
 
     /** - --> go through all cases with unknown parameters: */
+    // printf("unknown_parameters_size = %d\n",unknown_parameters_size);
     for (counter = 0; counter < unknown_parameters_size; counter++){
       index_target = target_indices[counter];
       class_call(parser_read_double(pfc,
@@ -1164,6 +1166,7 @@ int input_read_parameters(
 
 
   if (pba->Omega0_dcdmdr > 0) {
+    // printf("pba->Omega0_dcdmdr = %.8e\n",pba->Omega0_dcdmdr);
 
     Omega_tot += pba->Omega0_dcdmdr;
 
@@ -1216,12 +1219,12 @@ int input_read_parameters(
 
 
 
+          /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
+        class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
     // printf("f_dm_decay = %.3e\n",pba->f_dm_decay);
 
   }
 
-      /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
-    class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
     /* Convert to Mpc */
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
@@ -1425,6 +1428,7 @@ Omega_tot += pba->Omega0_cdm;
   if (flag1 == _FALSE_) {
     //Fill with Lambda
     pba->Omega0_lambda= 1. - pba->Omega0_k - Omega_tot;
+    // printf("Omega_tot = %.8e\n",Omega_tot);
     if (input_verbose > 0) printf(" -> matched budget equations by adjusting Omega_Lambda = %e\n",pba->Omega0_lambda);
   }
   else if (flag2 == _FALSE_) {
@@ -4146,7 +4150,7 @@ int input_get_guess(double *xguess,
       // case input Omega_ini_dcdm:
       // Omega_ini_dcdm_guess;
       // int counter;
-      for (counter = 0; counter < 10; counter++){
+      for (counter = 0; counter < 11; counter++){
       if (pfzw->target_name[counter] == 5) break;
       }
       Omega_ini_dcdm_guess = pfzw->target_value[counter];
@@ -4162,7 +4166,7 @@ int input_get_guess(double *xguess,
 
 
       // h_guess;
-      for (counter = 0; counter < 10; counter++){
+      for (counter = 0; counter < 11; counter++){
       if (pfzw->target_name[counter] == 0) break;
       }
       h_guess = xguess[counter];
@@ -4259,6 +4263,7 @@ int input_get_guess(double *xguess,
       Omega0_dcdmdr *=pfzw->target_value[index_guess];
       Omega_M = ba.Omega0_cdm+ba.Omega0_idm_dr+Omega0_dcdmdr+ba.Omega0_b;
       gamma = ba.Gamma_dcdm/ba.H0;
+      // printf("%.3e\n",gamma);
       if (gamma < 1)
         a_decay = 1.0;
       else
@@ -4270,7 +4275,7 @@ int input_get_guess(double *xguess,
       // printf("case Omega_ini_dcdm\n");
       // printf("x = Omega_ini_guess = %.8e, dxdy = %g id = %d\n",xguess[index_guess],*dxdy,index_guess);
 
-      //printf("x = Omega_ini_guess = %g, dxdy = %g\n",*xguess,*dxdy);
+      // printf("x = Omega_ini_guess = %g, dxdy = %g %d %.3e\n",*xguess,*dxdy,index_guess,pfzw->target_value[index_guess]);
       break;
 
     case sigma8:
@@ -4307,7 +4312,8 @@ int input_find_root(double *xzero,
   class_call(input_get_guess(&x1, &dxdy, pfzw, errmsg),
              errmsg, errmsg);
   //      printf("x1= %g\n",x1);
-
+//   printf("x1= %g\n",x1);
+// exit(0);
   class_call(input_fzerofun_1d(x1,
                                pfzw,
                                &f1,
@@ -4316,7 +4322,8 @@ int input_find_root(double *xzero,
 
   (*fevals)++;
   //printf("x1= %g, f1= %g\n",x1,f1);
-
+//   printf("x1= %g, f1= %g\n",x1,f1);
+// exit(0);
   dx = 1.5*f1*dxdy;
 
   /** - Then we do a linear hunt for the boundaries */
