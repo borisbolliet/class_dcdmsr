@@ -154,6 +154,7 @@ int thermodynamics_at_z(
 
     /* Calculate Tb */
     // pvecthermo[pth->index_th_Tb] = pba->T_cmb*(1.+z);
+    // class_T0 modifs
     pvecthermo[pth->index_th_Tb] = pvecback[pba->index_bg_modified_T_cmb];
 
     /* Calculate baryon equation of state parameter wb = (k_B/mu) Tb */

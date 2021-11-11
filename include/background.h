@@ -94,6 +94,7 @@ struct background
 
   double Gamma_dcdm; /**< \f$ \Gamma_{dcdm} \f$: decay constant for decaying cold dark matter */
   int dr_is_sr;
+  int use_T_cmb_cobe_in_cs;
   double Omega_ini_dcdm;    /**< \f$ \Omega_{ini,dcdm} \f$: rescaled initial value for dcdm density (see 1407.2418 for definitions) */
 
   double Omega0_scf;        /**< \f$ \Omega_{0 scf} \f$: scalar field */

@@ -1225,10 +1225,12 @@ int input_read_parameters(
 
   }
 
+    class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
     /* Convert to Mpc */
     pba->Gamma_dcdm *= (1.e3 / _c_);
 
     class_read_int("dr_is_sr",pba->dr_is_sr);
+    class_read_int("use_T_cmb_cobe_in_cs",pba->use_T_cmb_cobe_in_cs);
 
   // /** - Read Gamma in same units as H0, i.e. km/(s Mpc)*/
   // class_read_double("Gamma_dcdm",pba->Gamma_dcdm);
@@ -3326,6 +3328,7 @@ int input_default_params(
   pba->Omega0_dcdm = 0.0;
   pba->Gamma_dcdm = 0.0;
   pba->dr_is_sr = 1;
+  pba->use_T_cmb_cobe_in_cs = 0;
   pba->f_dm_decay = 0.;
   pba->N_ncdm = 0;
   pba->Omega0_ncdm_tot = 0.;
@@ -4256,6 +4259,9 @@ int input_get_guess(double *xguess,
     case omega_ini_dcdm_hat:
     case f_dm_decay:
       Omega0_dcdmdr = 1./(ba.h*ba.h);
+    //   Omega0_dcdmdr *=pfzw->target_value[index_guess]*1./(ba.h*ba.h);
+    // case omega_ini_dcdm_hat:
+    //   Omega0_dcdmdr *=pfzw->target_value[index_guess]*1./(ba.h*ba.h)*;
     case Omega_ini_dcdm:
       /** - This works since correspondence is
           Omega_ini_dcdm -> Omega_dcdmdr and
@@ -4268,6 +4274,7 @@ int input_get_guess(double *xguess,
         a_decay = 1.0;
       else
         a_decay = pow(1+(gamma*gamma-1.)/Omega_M,-1./3.);
+      // a_decay = pow(1+(gamma*gamma-1.)/Omega_M,-1./3.);
       xguess[index_guess] = pfzw->target_value[index_guess]*a_decay;
       dxdy[index_guess] = a_decay;
       if (gamma > 100)

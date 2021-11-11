@@ -23,3 +23,4 @@ cl_ST_DCDM_SR-checkpoint.ipynb
 mcmcs/mcmc_chains/*
 notebooks/.ipynb_checkpoints/*
 notebooks/.ipynb_checkpoints/cl_ST_DCDM_SR-checkpoint.ipynb
+*.pdf

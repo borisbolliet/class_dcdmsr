@@ -2480,8 +2480,18 @@ int background_derivs(
              "rho_g = %e instead of strictly positive",pvecback[pba->index_bg_rho_g]);
 
   /** - calculate \f$ rs' = c_s \f$*/
+  //class_dcdmsr modif
+  if (pba->use_T_cmb_cobe_in_cs == 1){
+  double sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
+  double Omega0_g_cobe = (4.*sigma_B/_c_*pow(2.7255,4.)) / (3.*_c_*_c_*1.e10*pba->h*pba->h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
+  double rho_g_cobe =  Omega0_g_cobe * pow(pba->H0,2) / pow(a / pba->a_today,4);
+
+  dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./rho_g_cobe))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+}
+else{
   dy[pba->index_bi_rs] = 1./sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
 
+}
   /** - solve second order growth equation  \f$ [D''(\tau)=-aHD'(\tau)+3/2 a^2 \rho_M D(\tau) \f$ */
   rho_M = pvecback[pba->index_bg_rho_b];
   if (pba->has_cdm)
