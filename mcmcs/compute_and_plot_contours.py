@@ -1,4 +1,4 @@
-#! /scratch/nas_chluba/specdist/bolliet/anaconda3/bin/python3
+
 import os
 # os.environ['OPENBLAS_NUM_THREADS'] = '1'
 #os.system("export OMP_NUM_THREADS=8")
@@ -28,13 +28,20 @@ chain_dir = '/Users/boris/Work/CLASS-SZ/SO-SZ/class_T0/mcmcs/mcmc_chains/'
 
 
 path_to_figures = '/Users/boris/Work/CLASS-SZ/SO-SZ/class_T0/mcmcs/'
-path_to_getdist = path_to_anaconda3 + 'bin/getdist'
-
+# path_to_getdist = path_to_anaconda3 + 'bin/getdist'
+path_to_getdist = 'getdist'
 ###############################################
 
 
 path_to_chains = []
 final_chain_dir_list = []
+
+
+# here put the  full path to chain excluding 'txt' extension
+final_chain_dir_list.append(chain_dir+'/CLASS2p8_planck2018_DCDMSRNeff_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF/CLASS2p8_planck2018_DCDMSRNeff_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF')
+# here put the  full path to chain directory
+path_to_chains.append(chain_dir+'/CLASS2p8_planck2018_DCDMSRNeff_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF/')
+
 
 # here put the  full path to chain excluding 'txt' extension
 final_chain_dir_list.append(chain_dir+'/CLASS2p8_planck2018_DCDMSR_logpriors_lowTEB_plikHM_TTTEEE_FIRAS/CLASS2p8_planck2018_DCDMSR_logpriors_lowTEB_plikHM_TTTEEE_FIRAS')
@@ -191,12 +198,12 @@ def run(args):
     for s in range(len(all_samples)):
         sample_list.append(all_samples[s])
     g.triangle_plot(sample_list,
-                    [ 'log10_Gamma_dcdm','log10_omega_ini_dcdm_hat','T_cmb',
+                    [ 'Neff','log10_Gamma_dcdm','log10_omega_ini_dcdm_hat','T_cmb',
                     'omega_b_hat',#'omega_b',
                     'omega_cdm_hat',#'omega_cdm',
                     'logA_hat','n_s','theta_s_1e2','H0','H0_hat','sigma8','sigma8_hat','Omega_m','Omega_m_hat','omegamh2','s8omegamp5_norm'],
                     filled=True,
-                    legend_labels=[ 'CMB+FIRAS', 'CMB+FIRAS+SHOES'],
+                    legend_labels=[ 'CMB+FIRAS+SHOES+Neff','CMB+FIRAS', 'CMB+FIRAS+SHOES'],
                     legend_loc='upper right',
                     colors = ['blue','red','green','red'],
                     line_args=[{'lw':'1','color':'blue'},{'lw':'1','color':'red'},{'lw':'1','color':'green'},{'lw':'1','color':'r'}]
