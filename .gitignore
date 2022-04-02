@@ -18,3 +18,4 @@ doc/manual/latex
 class_sz
 notebooks/*pdf
 notebooks/*checkpoints
+mcmcs/*
