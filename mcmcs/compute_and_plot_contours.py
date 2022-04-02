@@ -37,6 +37,7 @@ path_to_chains = []
 final_chain_dir_list = []
 
 
+
 # here put the  full path to chain excluding 'txt' extension
 final_chain_dir_list.append(chain_dir+'/CLASS2p8_planck2018_DCDMSRNeff_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF/CLASS2p8_planck2018_DCDMSRNeff_logpriors_lowTEB_plikHM_TTTEEE_SH0ES20_FIRAS_BAO_DR7_DR12_6dF')
 # here put the  full path to chain directory
@@ -211,6 +212,7 @@ def run(args):
 
 
     g.export(path_to_figures+'contours.pdf')
+
 
 
 
