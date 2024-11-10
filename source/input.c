@@ -276,9 +276,21 @@ int input_init(
    *
    */
 
-  char * const target_namestrings[] = {"100*theta_s","Omega_dm_tot","Omega_dcdmdr","omega_dcdmdr",
-                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","omega_ini_dcdm_hat","f_dm_decay","sigma8","T_cmb_dcdmsr"};
-  char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm","Omega_ini_dcdm",
+  char * const target_namestrings[] = {"100*theta_s",
+                                       "Omega_dm_tot",
+                                       "Omega_dcdmdr",
+                                       "omega_dcdmdr",
+                                       "Omega_scf",
+                                       "Omega_ini_dcdm",
+                                       "omega_ini_dcdm",
+                                       "omega_ini_dcdm_hat",
+                                       "f_dm_decay",
+                                       "sigma8",
+                                       "T_cmb_dcdmsr"};
+  char * const unknown_namestrings[] = {"h",
+                                       "Omega_ini_dcdm",
+                                       "Omega_ini_dcdm",
+                                       "Omega_ini_dcdm",
                                         "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","omega_dcdmdr","A_s","T_cmb"};
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background, cs_background,
                                         cs_background, cs_background, cs_background, cs_background, cs_background, cs_nonlinear,cs_background};
@@ -299,6 +311,8 @@ int input_init(
   unknown_parameters_size = 0;
   fzw.required_computation_stage = 0;
   for (index_target = 0; index_target < _NUM_TARGETS_; index_target++){
+
+    printf("\n\nindex_target = %d\n", index_target);
     class_call(parser_read_double(pfc,
                                   target_namestrings[index_target],
                                   &param1,
@@ -311,6 +325,7 @@ int input_init(
       /** - --> input_auxillary_target_conditions() takes care of the case where for
           instance Omega_dcdmdr is set to 0.0.
       */
+     printf("Checking shooting for target %s with value %g\n", target_namestrings[index_target], param1);
       class_call(input_auxillary_target_conditions(pfc,
                                                    index_target,
                                                    param1,
@@ -320,7 +335,17 @@ int input_init(
       if (aux_flag == _TRUE_){
         // printf("Found target: %s %d\n",target_namestrings[index_target],target_indices[unknown_parameters_size]);
         target_indices[unknown_parameters_size] = index_target;
+
+        printf("unknown_parameters_size = %d\n", unknown_parameters_size);
+        printf("index_target = %d\n", index_target);
+
+        printf("fzw.required_computation_stage = %d\n", fzw.required_computation_stage);
+        printf("target_cs[index_target] = %d\n", target_cs[index_target]);
+        
+
+    
         fzw.required_computation_stage = MAX(fzw.required_computation_stage,target_cs[index_target]);
+        printf("fzw.required_computation_stage = %d\n\n", fzw.required_computation_stage);
         unknown_parameters_size++;
       }
     }
@@ -3883,7 +3908,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
   if (pfzw->required_computation_stage >= cs_background){
     if (input_verbose>2)
       printf("Stage 1: background\n");
-    ba.background_verbose = 0;
+    ba.background_verbose = 4;
     class_call(background_init(&pr,&ba),
                ba.error_message,
                errmsg
@@ -4008,11 +4033,11 @@ int input_try_unknown_parameters(double * unknown_parameter,
       else
         rho_dr_today = 0.;
       output[i] = -(rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0)+ba.Omega0_dcdmdr;
-      // printf("Omega_ini_dcdm = %.8e\n",ba.Omega_ini_dcdm);
-      // printf("Omega0_dcdmdr (obtained) = %.8e (ba.Omega0_dcdmdr) = %.8e target = %.8e\n",
-      // (rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0),
-      // ba.Omega0_dcdmdr,
-      // pfzw->target_value[i]);
+      printf("Omega_ini_dcdm = %.8e\n",ba.Omega_ini_dcdm);
+      printf("Omega0_dcdmdr (obtained) = %.8e (ba.Omega0_dcdmdr) = %.8e target = %.8e\n",
+      (rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0),
+      ba.Omega0_dcdmdr,
+      pfzw->target_value[i]);
 
       break;
     case sigma8:
@@ -4033,10 +4058,10 @@ int input_try_unknown_parameters(double * unknown_parameter,
   // double rho_g_lcdm = ba.Omega0_g*(ba.H0*ba.H0);
   // T_cmb_eff = T_cmb*(rho_g/rho_g_lcdm)**0.25
   double T_cmb_dcdmsr = ba.T_cmb_dcdmsr;//ba.T_cmb*pow(ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_g]/rho_g_lcdm,0.25);
-  // printf("Omega_dcdm = %.3e Omega_dr = %.3e\n",Omega_dcdm,Omega_dr);
-  // printf("omega_dcdmdr = %.8e\n",(Omega_dcdm+Omega_dr)*ba.h*ba.h);
-  // printf("Omega_dcdmdr = %.8e\n",(Omega_dcdm+Omega_dr));
-  // printf("T_cmb_dcdmsr = %.8e\n",T_cmb_dcdmsr);
+  printf("Omega_dcdm = %.3e Omega_dr = %.3e\n",Omega_dcdm,Omega_dr);
+  printf("omega_dcdmdr = %.8e\n",(Omega_dcdm+Omega_dr)*ba.h*ba.h);
+  printf("Omega_dcdmdr = %.8e\n",(Omega_dcdm+Omega_dr));
+  printf("T_cmb_dcdmsr = %.8e\n",T_cmb_dcdmsr);
 
   /** - Free structures */
   if (pfzw->required_computation_stage >= cs_spectra){

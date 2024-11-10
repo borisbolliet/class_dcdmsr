@@ -498,6 +498,9 @@ int background_functions(
     /** - store critical density */
     pvecback[pba->index_bg_rho_crit] = rho_crit;
 
+    // printf("rho_m = %e\n", rho_m);
+    // exit(0);
+
     /** - compute Omega_m */
     pvecback[pba->index_bg_Omega_m] = rho_m / rho_crit;
 
@@ -1947,6 +1950,7 @@ if ((pba->has_dcdm == _TRUE_)&&(pba->has_dr == _TRUE_)&&(pba->dr_is_sr == _TRUE_
 
   /**  - total matter, radiation, dark energy today */
   pba->Omega0_m = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_Omega_m];
+  //  printf("Omega_0_m budget  = %.5e\n",pba->Omega0_m);
   pba->Omega0_r = pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_Omega_r];
   pba->Omega0_de = 1. - (pba->Omega0_m + pba->Omega0_r + pba->Omega0_k);
   // printf("     -> Omega0_dr+Omega0_dcdm = %.8e, input value pba->Omega0_dcdmdr = %.8e\n",
@@ -1982,6 +1986,7 @@ if (pba->background_verbose > 2) {
       printf("     -> H0 =  %f km/s/Mpc\n",pba->H0/(1.e3 / _c_));
 
       printf("     -> Lambda = (Gamma/H0/Omega_m**0.5) = %f\n",lambda_dcdm);
+      // exit(0);
       double dT_cmb_dT_cmb_dcdmsr_approx_linearized = -1./4.*pba->Omega_ini_dcdm/Omega_0_g_lcdm
                                     *pow(2.*lambda_dcdm/3.,-2./3.)
                                     *(gsl_sf_gamma_inc(5./3., 0.)-gsl_sf_gamma_inc(5./3., 2.*lambda_dcdm/3.));

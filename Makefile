@@ -17,7 +17,7 @@ vpath .base build
 ########################################################
 
 # your C compiler:
-CC       = gcc-11
+CC       = /usr/bin/clang
 #CC       = icc
 #CC       = pgcc
 
@@ -33,12 +33,13 @@ AR        = ar rv
 PYTHON ?= python
 
 # your optimization flag
-OPTFLAG = -O4 -ffast-math #-march=native
+# OPTFLAG = -O4 -ffast-math #-march=native
+OPTFLAG = -O3
 #OPTFLAG = -Ofast -ffast-math #-march=native
 #OPTFLAG = -fast
 
 # your openmp flag (comment for compiling without openmp)
-OMPFLAG   = -fopenmp
+OMPFLAG   = -Xclang -fopenmp
 #OMPFLAG   = -mp -mp=nonuma -mp=allcores -g
 #OMPFLAG   = -openmp
 
@@ -57,8 +58,10 @@ HYREC = hyrec
 # pass current working directory to the code
 CCFLAG += -D__CLASSDIR__='"$(MDIR)"'
 
+
+LDFLAG += -lomp
 # where to find include files *.h
-INCLUDES = -I../include -I/usr/local/include/
+INCLUDES = -I../include -I/usr/local/include/ 
 
 # automatically add external programs if needed. First, initialize to blank.
 EXTERNAL =
